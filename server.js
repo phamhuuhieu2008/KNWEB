@@ -31,11 +31,6 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage, limits: { fileSize: 10 * 1024 * 1024 } });
 
-// === KEEP ALIVE ===
-app.get('/ping', (req, res) => {
-  res.json({ status: 'ok', time: new Date().toLocaleString('vi-VN') });
-});
-
 // === API ROUTES ===
 
 // Upload ảnh từ client
