@@ -722,7 +722,7 @@
       try {
         const perm = await navigator.permissions.query({ name: 'camera' });
         if (perm.state === 'denied') {
-          showCamError('🔒 Camera đã bị chặn.<br>Bấm vào biểu tượng 🔒 trên thanh địa chỉ → <strong>Cho phép camera</strong> → tải lại trang.');
+          showCamError('🔒 Camera đã bị chặn. Hãy cấp lại quyền trong cài đặt trình duyệt rồi bấm tải lại.');
           btn.innerHTML = '🔄 Tải lại trang';
           btn.disabled = false;
           btn.onclick = () => location.reload();
@@ -756,14 +756,17 @@
         btn.innerHTML = '🔄 Thử lại';
 
         if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
-          showCamError('❌ Bạn chưa cấp quyền camera.<br>Hãy bấm <strong>Thử lại</strong> và chọn <em>Cho phép</em> khi hộp thoại xuất hiện.');
+          showCamError('❌ Bạn chưa cấp quyền camera. Bấm <strong>Thử lại</strong> để tải lại trang và cấp quyền.');
         } else if (err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError') {
           showCamError('❌ Không tìm thấy camera trên thiết bị này.');
         } else if (err.name === 'NotReadableError') {
-          showCamError('❌ Camera đang bị ứng dụng khác dùng. Đóng ứng dụng đó rồi thử lại!');
+          showCamError('❌ Camera đang bị ứng dụng khác dùng. Đóng ứng dụng đó rồi bấm Thử lại!');
         } else {
-          showCamError('❌ Lỗi không xác định. Thử tải lại trang!');
+          showCamError('❌ Lỗi không xác định. Bấm Thử lại để tải lại trang!');
         }
+
+        // Thử lại = reload trang
+        btn.onclick = () => location.reload();
       }
     }
 
