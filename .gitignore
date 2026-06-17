@@ -1,0 +1,17 @@
+# Dependencies
+node_modules/
+
+# Uploads (ảnh & video người dùng)
+uploads/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Environment
+.env
+.env.local
+
+# OS files
+.DS_Store
+Thumbs.db
