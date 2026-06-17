@@ -1,700 +1,339 @@
 <!DOCTYPE html>
 <html lang="vi">
-
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Admin Dashboard — Quản lý ảnh</title>
+  <title>FaceCap Admin — Dashboard</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <style>
-    *,
-    *::before,
-    *::after {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
       --bg: #07090f;
       --surface: #0f1220;
       --surface2: #141828;
-      --border: rgba(255, 255, 255, 0.07);
+      --border: rgba(255,255,255,0.07);
       --accent: #6c63ff;
-      --accent-dim: rgba(108, 99, 255, 0.15);
+      --accent-dim: rgba(108,99,255,0.15);
       --danger: #f72585;
-      --danger-dim: rgba(247, 37, 133, 0.12);
+      --danger-dim: rgba(247,37,133,0.12);
       --success: #00e5a0;
+      --warn: #ff9a3c;
       --text: #eef0f8;
-      --muted: rgba(238, 240, 248, 0.45);
+      --muted: rgba(238,240,248,0.45);
       --card-radius: 18px;
     }
 
-    body {
-      font-family: 'Outfit', sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      min-height: 100vh;
-    }
+    body { font-family:'Outfit',sans-serif; background:var(--bg); color:var(--text); min-height:100vh; }
 
-    /* ---- Sidebar ---- */
+    /* ===== SIDEBAR ===== */
     .sidebar {
-      position: fixed;
-      left: 0;
-      top: 0;
-      bottom: 0;
-      width: 240px;
-      background: var(--surface);
-      border-right: 1px solid var(--border);
-      padding: 32px 20px;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      z-index: 100;
+      position: fixed; left:0; top:0; bottom:0; width:220px;
+      background:var(--surface); border-right:1px solid var(--border);
+      padding:28px 16px; display:flex; flex-direction:column; gap:4px; z-index:100;
     }
-
-    .logo {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 0 8px;
-      margin-bottom: 32px;
-    }
-
-    .logo-icon {
-      width: 40px;
-      height: 40px;
-      background: linear-gradient(135deg, var(--accent), var(--danger));
-      border-radius: 12px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 1.2rem;
-    }
-
-    .logo-text {
-      font-size: 1.05rem;
-      font-weight: 700;
-    }
-
-    .logo-sub {
-      font-size: 0.72rem;
-      color: var(--muted);
-    }
+    .logo { display:flex; align-items:center; gap:10px; padding:0 6px; margin-bottom:28px; }
+    .logo-icon { width:38px; height:38px; background:linear-gradient(135deg,var(--accent),var(--danger)); border-radius:11px; display:flex; align-items:center; justify-content:center; font-size:1.1rem; }
+    .logo-text { font-size:1rem; font-weight:700; }
+    .logo-sub  { font-size:0.68rem; color:var(--muted); }
 
     .nav-item {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 11px 14px;
-      border-radius: 12px;
-      font-size: 0.9rem;
-      font-weight: 500;
-      color: var(--muted);
-      cursor: pointer;
-      transition: all 0.2s ease;
-      border: 1px solid transparent;
+      display:flex; align-items:center; gap:10px;
+      padding:10px 12px; border-radius:11px;
+      font-size:0.87rem; font-weight:500; color:var(--muted);
+      cursor:pointer; transition:all 0.18s;
+      border:1px solid transparent; position:relative;
     }
+    .nav-item:hover { background:var(--accent-dim); color:var(--text); }
+    .nav-item.active { background:var(--accent-dim); color:#a89cff; border-color:rgba(108,99,255,0.25); }
+    .nav-icon { font-size:1rem; }
+    .nav-badge {
+      margin-left:auto; background:var(--danger); color:#fff;
+      font-size:0.68rem; font-weight:700; border-radius:100px;
+      padding:2px 7px; min-width:20px; text-align:center;
+      display:none;
+    }
+    .nav-badge.show { display:block; }
 
-    .nav-item:hover {
-      background: var(--accent-dim);
-      color: var(--text);
+    .ws-indicator {
+      display:flex; align-items:center; gap:8px;
+      margin:0 6px 16px; padding:10px 12px;
+      background:rgba(0,229,160,0.08); border:1px solid rgba(0,229,160,0.2);
+      border-radius:10px; font-size:0.78rem; color:rgba(0,229,160,0.8);
     }
-
-    .nav-item.active {
-      background: var(--accent-dim);
-      color: #a89cff;
-      border-color: rgba(108, 99, 255, 0.25);
-    }
-
-    .nav-icon {
-      font-size: 1.1rem;
-    }
+    .ws-dot { width:8px; height:8px; border-radius:50%; background:#00e5a0; animation:wsGlow 2s ease-in-out infinite; }
+    .ws-dot.off { background:#f72585; animation:none; }
+    @keyframes wsGlow { 0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(0,229,160,0.5)} 50%{opacity:0.7;box-shadow:0 0 0 5px rgba(0,229,160,0)} }
 
     .sidebar-footer {
-      margin-top: auto;
-      padding: 14px;
-      background: var(--danger-dim);
-      border: 1px solid rgba(247, 37, 133, 0.2);
-      border-radius: 14px;
-      font-size: 0.8rem;
-      color: rgba(247, 37, 133, 0.8);
-      line-height: 1.5;
+      margin-top:auto; padding:12px;
+      background:var(--danger-dim); border:1px solid rgba(247,37,133,0.2);
+      border-radius:12px; font-size:0.75rem; color:rgba(247,37,133,0.8); line-height:1.5;
     }
 
-    /* ---- Main ---- */
-    .main {
-      margin-left: 240px;
-      padding: 36px 36px 60px;
-      min-height: 100vh;
-    }
+    /* ===== MAIN ===== */
+    .main { margin-left:220px; padding:32px 32px 60px; min-height:100vh; }
 
-    /* ---- Header ---- */
-    .header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 32px;
-    }
+    .tab-panel { display:none; }
+    .tab-panel.active { display:block; }
 
-    .header-title {
-      font-size: 1.6rem;
-      font-weight: 700;
-    }
+    /* ===== HEADER ===== */
+    .header { display:flex; align-items:center; justify-content:space-between; margin-bottom:28px; flex-wrap:wrap; gap:12px; }
+    .header-title { font-size:1.5rem; font-weight:700; }
+    .header-sub { font-size:0.88rem; color:var(--muted); margin-top:2px; }
+    .header-actions { display:flex; gap:10px; flex-wrap:wrap; }
 
-    .header-sub {
-      font-size: 0.9rem;
-      color: var(--muted);
-      margin-top: 2px;
-    }
+    .btn { display:flex; align-items:center; gap:8px; border-radius:10px; padding:9px 16px; font-size:0.85rem; font-weight:600; cursor:pointer; transition:all 0.18s; font-family:'Outfit',sans-serif; border:1px solid var(--border); background:var(--surface2); color:var(--text); }
+    .btn:hover { background:var(--accent-dim); border-color:rgba(108,99,255,0.3); }
+    .btn-danger { background:var(--danger-dim); border-color:rgba(247,37,133,0.25); color:#f72585; }
+    .btn-danger:hover { background:rgba(247,37,133,0.22); }
+    .btn-success { background:rgba(0,229,160,0.1); border-color:rgba(0,229,160,0.25); color:var(--success); }
+    .btn-success:hover { background:rgba(0,229,160,0.18); }
 
-    .refresh-btn {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      background: var(--surface2);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 10px 18px;
-      font-size: 0.88rem;
-      font-weight: 600;
-      color: var(--text);
-      cursor: pointer;
-      transition: all 0.2s;
-      font-family: 'Outfit', sans-serif;
-    }
+    /* ===== STATS ===== */
+    .stats-row { display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:14px; margin-bottom:28px; }
+    .stat-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--card-radius); padding:20px 18px; display:flex; flex-direction:column; gap:5px; transition:border-color 0.2s; }
+    .stat-card:hover { border-color:rgba(108,99,255,0.3); }
+    .stat-icon { font-size:1.4rem; }
+    .stat-val { font-size:1.9rem; font-weight:700; line-height:1; }
+    .stat-label { font-size:0.78rem; color:var(--muted); }
 
-    .refresh-btn:hover {
-      background: var(--accent-dim);
-      border-color: rgba(108, 99, 255, 0.3);
-    }
+    /* ===== GALLERY / GRIDS ===== */
+    .section-title { font-size:1.05rem; font-weight:600; margin-bottom:18px; display:flex; align-items:center; gap:10px; }
+    .section-title::after { content:''; flex:1; height:1px; background:var(--border); }
 
-    /* ---- Stats ---- */
-    .stats-row {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-      gap: 16px;
-      margin-bottom: 32px;
-    }
+    .photo-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(270px,1fr)); gap:18px; }
+    .video-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(310px,1fr)); gap:18px; }
+    .audio-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:14px; }
 
-    .stat-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--card-radius);
-      padding: 22px 20px;
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-      transition: border-color 0.2s;
+    .photo-card, .video-card {
+      background:var(--surface); border:1px solid var(--border);
+      border-radius:var(--card-radius); overflow:hidden;
+      transition:transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s;
+      animation:cardIn 0.4s ease both;
     }
+    .photo-card:hover, .video-card:hover { transform:translateY(-4px); box-shadow:0 16px 48px rgba(0,0,0,0.4); border-color:rgba(108,99,255,0.3); }
+    .photo-card.selected { border-color:#6c63ff; box-shadow:0 0 0 2px rgba(108,99,255,0.4); }
 
-    .stat-card:hover {
-      border-color: rgba(108, 99, 255, 0.3);
-    }
+    @keyframes cardIn { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
 
-    .stat-icon {
-      font-size: 1.5rem;
-    }
+    .photo-thumb { width:100%; aspect-ratio:4/3; object-fit:cover; display:block; cursor:pointer; transition:transform 0.28s; }
+    .photo-card:hover .photo-thumb { transform:scale(1.03); }
+    .video-player { width:100%; aspect-ratio:4/3; object-fit:cover; display:block; background:#000; border-bottom:1px solid var(--border); }
 
-    .stat-val {
-      font-size: 2rem;
-      font-weight: 700;
-      line-height: 1;
-    }
+    .photo-info { padding:14px; }
+    .photo-meta { display:flex; flex-direction:column; gap:5px; margin-bottom:12px; }
+    .meta-row { display:flex; align-items:flex-start; gap:8px; font-size:0.78rem; color:var(--muted); }
+    .meta-row strong { color:var(--text); font-weight:500; }
+    .meta-icon { width:16px; text-align:center; flex-shrink:0; padding-top:1px; }
 
-    .stat-label {
-      font-size: 0.8rem;
-      color: var(--muted);
-    }
+    .timer-bar-wrap { height:3px; background:rgba(255,255,255,0.06); border-radius:99px; overflow:hidden; margin-bottom:12px; }
+    .timer-bar { height:100%; border-radius:99px; background:linear-gradient(90deg,var(--success),#00b4ff); transition:width 1s linear; }
+    .timer-bar.low { background:linear-gradient(90deg,#ff9a3c,var(--danger)); }
 
-    /* ---- Gallery ---- */
-    .section-title {
-      font-size: 1.1rem;
-      font-weight: 600;
-      margin-bottom: 20px;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .section-title::after {
-      content: '';
-      flex: 1;
-      height: 1px;
-      background: var(--border);
-    }
-
-    .empty-state {
-      text-align: center;
-      padding: 80px 20px;
-      color: var(--muted);
-    }
-
-    .empty-state .empty-icon {
-      font-size: 4rem;
-      margin-bottom: 16px;
-      display: block;
-    }
-
-    .empty-state h3 {
-      font-size: 1.1rem;
-      font-weight: 600;
-      margin-bottom: 8px;
-      color: var(--text);
-    }
-
-    /* ---- Photo Grid ---- */
-    .photo-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-      gap: 20px;
-    }
-
-    /* ---- Video Grid ---- */
-    .video-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-      gap: 20px;
-    }
-
-    .video-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--card-radius);
-      overflow: hidden;
-      transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
-      animation: cardIn 0.4s ease both;
-    }
-
-    .video-card:hover {
-      transform: translateY(-4px);
-      box-shadow: 0 16px 48px rgba(0, 0, 0, 0.4);
-      border-color: rgba(108, 99, 255, 0.3);
-    }
-
-    .video-player {
-      width: 100%;
-      aspect-ratio: 4/3;
-      object-fit: cover;
-      display: block;
-      background: #000;
-      border-bottom: 1px solid var(--border);
-    }
-
-    .photo-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--card-radius);
-      overflow: hidden;
-      transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
-      animation: cardIn 0.4s ease both;
-    }
-
-    .photo-card:hover {
-      transform: translateY(-4px);
-      box-shadow: 0 16px 48px rgba(0, 0, 0, 0.4);
-      border-color: rgba(108, 99, 255, 0.3);
-    }
-
-    @keyframes cardIn {
-      from {
-        opacity: 0;
-        transform: translateY(20px);
-      }
-
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-
-    .photo-thumb {
-      width: 100%;
-      aspect-ratio: 4/3;
-      object-fit: cover;
-      display: block;
-      cursor: pointer;
-      transition: transform 0.3s ease;
-    }
-
-    .photo-card:hover .photo-thumb {
-      transform: scale(1.03);
-    }
-
-    .photo-info {
-      padding: 16px;
-    }
-
-    .photo-meta {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-      margin-bottom: 14px;
-    }
-
-    .meta-row {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 0.8rem;
-      color: var(--muted);
-    }
-
-    .meta-row strong {
-      color: var(--text);
-      font-weight: 500;
-    }
-
-    .meta-icon {
-      width: 16px;
-      text-align: center;
-      flex-shrink: 0;
-    }
-
-    .timer-bar-wrap {
-      height: 4px;
-      background: rgba(255, 255, 255, 0.06);
-      border-radius: 99px;
-      overflow: hidden;
-      margin-bottom: 14px;
-    }
-
-    .timer-bar {
-      height: 100%;
-      border-radius: 99px;
-      background: linear-gradient(90deg, var(--success), #00b4ff);
-      transition: width 1s linear;
-    }
-
-    .timer-bar.low {
-      background: linear-gradient(90deg, #ff9a3c, var(--danger));
-    }
-
-    .photo-actions {
-      display: grid;
-      grid-template-columns: 1fr auto;
-      gap: 10px;
-    }
+    .photo-actions { display:grid; grid-template-columns:auto auto 1fr; gap:8px; align-items:center; }
+    .check-wrap { display:flex; align-items:center; }
+    .photo-checkbox { width:18px; height:18px; accent-color:#6c63ff; cursor:pointer; }
 
     .btn-download {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      background: var(--accent-dim);
-      border: 1px solid rgba(108, 99, 255, 0.3);
-      border-radius: 10px;
-      padding: 10px;
-      font-size: 0.85rem;
-      font-weight: 600;
-      color: #a89cff;
-      cursor: pointer;
-      transition: all 0.2s;
-      text-decoration: none;
-      font-family: 'Outfit', sans-serif;
+      display:flex; align-items:center; justify-content:center; gap:6px;
+      background:var(--accent-dim); border:1px solid rgba(108,99,255,0.3);
+      border-radius:9px; padding:9px 12px; font-size:0.82rem; font-weight:600;
+      color:#a89cff; cursor:pointer; transition:all 0.18s; text-decoration:none; font-family:'Outfit',sans-serif;
     }
-
-    .btn-download:hover {
-      background: rgba(108, 99, 255, 0.25);
-      transform: scale(1.02);
-    }
-
+    .btn-download:hover { background:rgba(108,99,255,0.25); }
     .btn-delete {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: var(--danger-dim);
-      border: 1px solid rgba(247, 37, 133, 0.25);
-      border-radius: 10px;
-      padding: 10px 14px;
-      font-size: 1.1rem;
-      cursor: pointer;
-      transition: all 0.2s;
+      display:flex; align-items:center; justify-content:center;
+      background:var(--danger-dim); border:1px solid rgba(247,37,133,0.25);
+      border-radius:9px; padding:9px 12px; font-size:1rem;
+      cursor:pointer; transition:all 0.18s;
     }
+    .btn-delete:hover { background:rgba(247,37,133,0.22); transform:scale(1.05); }
 
-    .btn-delete:hover {
-      background: rgba(247, 37, 133, 0.22);
-      transform: scale(1.05);
+    /* Bulk bar */
+    .bulk-bar {
+      display:none; position:sticky; top:0; z-index:50;
+      background:rgba(108,99,255,0.15); border:1px solid rgba(108,99,255,0.3);
+      border-radius:12px; padding:12px 18px; margin-bottom:18px;
+      align-items:center; gap:14px; backdrop-filter:blur(8px);
     }
+    .bulk-bar.show { display:flex; }
+    .bulk-count { font-weight:600; font-size:0.9rem; flex:1; }
 
-    /* ---- Lightbox ---- */
-    .lightbox {
-      display: none;
-      position: fixed;
-      inset: 0;
-      background: rgba(0, 0, 0, 0.92);
-      z-index: 999;
-      align-items: center;
-      justify-content: center;
-      backdrop-filter: blur(8px);
+    /* Search/filter bar */
+    .filter-bar { display:flex; gap:12px; margin-bottom:20px; flex-wrap:wrap; }
+    .filter-input {
+      flex:1; min-width:180px; padding:9px 14px;
+      background:var(--surface2); border:1px solid var(--border);
+      border-radius:10px; color:var(--text); font-size:0.87rem; font-family:'Outfit',sans-serif;
     }
-
-    .lightbox.open {
-      display: flex;
+    .filter-input:focus { outline:none; border-color:rgba(108,99,255,0.4); }
+    .filter-select {
+      padding:9px 12px; background:var(--surface2); border:1px solid var(--border);
+      border-radius:10px; color:var(--text); font-size:0.87rem; font-family:'Outfit',sans-serif; cursor:pointer;
     }
+    .filter-select:focus { outline:none; border-color:rgba(108,99,255,0.4); }
 
-    .lightbox img {
-      max-width: 90vw;
-      max-height: 85vh;
-      border-radius: 16px;
-      box-shadow: 0 32px 80px rgba(0, 0, 0, 0.8);
+    /* Audio card */
+    .audio-card {
+      background:var(--surface); border:1px solid var(--border);
+      border-radius:14px; padding:16px; display:flex; align-items:center; gap:14px;
+      transition:border-color 0.2s; animation:cardIn 0.4s ease both;
     }
+    .audio-card:hover { border-color:rgba(108,99,255,0.3); }
+    .audio-icon-wrap { width:44px; height:44px; background:rgba(108,99,255,0.15); border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:1.4rem; flex-shrink:0; }
+    .audio-info { flex:1; min-width:0; }
+    .audio-player { width:100%; height:32px; margin:6px 0; }
+    .audio-meta-text { font-size:0.75rem; color:var(--muted); }
 
-    .lb-close {
-      position: fixed;
-      top: 20px;
-      right: 24px;
-      font-size: 1.8rem;
-      cursor: pointer;
-      color: rgba(255, 255, 255, 0.7);
-      transition: color 0.2s;
-      background: none;
-      border: none;
-      z-index: 1000;
+    /* ===== SESSIONS TABLE ===== */
+    .sessions-table-wrap { overflow-x:auto; border-radius:14px; border:1px solid var(--border); }
+    table { width:100%; border-collapse:collapse; font-size:0.83rem; }
+    thead { background:var(--surface2); }
+    th { padding:12px 14px; text-align:left; font-weight:600; color:var(--muted); font-size:0.78rem; text-transform:uppercase; letter-spacing:0.04em; white-space:nowrap; }
+    td { padding:11px 14px; border-top:1px solid var(--border); vertical-align:middle; }
+    tr:hover td { background:rgba(255,255,255,0.02); }
+    .badge-locked { background:rgba(247,37,133,0.15); color:#f72585; border:1px solid rgba(247,37,133,0.3); border-radius:100px; padding:3px 10px; font-size:0.72rem; font-weight:600; }
+    .badge-unlocked { background:rgba(0,229,160,0.12); color:#00e5a0; border:1px solid rgba(0,229,160,0.3); border-radius:100px; padding:3px 10px; font-size:0.72rem; font-weight:600; }
+    .session-actions { display:flex; gap:6px; }
+    .tbl-btn { padding:5px 10px; border-radius:7px; border:1px solid var(--border); background:var(--surface2); color:var(--text); font-size:0.75rem; cursor:pointer; font-family:'Outfit',sans-serif; transition:all 0.15s; }
+    .tbl-btn:hover { background:var(--accent-dim); border-color:rgba(108,99,255,0.3); }
+    .tbl-btn.danger { border-color:rgba(247,37,133,0.25); color:var(--danger); }
+    .tbl-btn.danger:hover { background:var(--danger-dim); }
+    .tbl-btn.success { border-color:rgba(0,229,160,0.3); color:var(--success); }
+    .tbl-btn.success:hover { background:rgba(0,229,160,0.1); }
+    .ua-short { max-width:180px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:var(--muted); }
+    .new-pulse { animation:newRow 1.5s ease; }
+    @keyframes newRow { 0%,100%{background:transparent} 30%{background:rgba(108,99,255,0.12)} }
+
+    /* ===== MAP ===== */
+    #map-container { border-radius:16px; overflow:hidden; border:1px solid var(--border); }
+    #leaflet-map { height:520px; }
+    .map-stats { display:flex; gap:14px; margin-bottom:16px; flex-wrap:wrap; }
+    .map-stat { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:12px 18px; font-size:0.85rem; }
+    .map-stat span { color:var(--muted); }
+    .map-stat strong { display:block; font-size:1.1rem; font-weight:700; margin-top:2px; }
+
+    /* ===== CHARTS ===== */
+    .chart-grid { display:grid; grid-template-columns:2fr 1fr; gap:20px; margin-bottom:24px; }
+    .chart-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--card-radius); padding:22px; }
+    .chart-title { font-size:0.9rem; font-weight:600; color:var(--muted); margin-bottom:16px; }
+    canvas.chart { width:100% !important; }
+    .chart-tabs { display:flex; gap:8px; margin-bottom:16px; }
+    .chart-tab { padding:5px 14px; border-radius:8px; font-size:0.8rem; font-weight:600; cursor:pointer; border:1px solid var(--border); background:transparent; color:var(--muted); font-family:'Outfit',sans-serif; transition:all 0.15s; }
+    .chart-tab.active { background:var(--accent-dim); border-color:rgba(108,99,255,0.3); color:#a89cff; }
+
+    /* ===== SETTINGS ===== */
+    .settings-grid { display:grid; grid-template-columns:1fr 1fr; gap:20px; }
+    .settings-section { background:var(--surface); border:1px solid var(--border); border-radius:var(--card-radius); padding:24px; }
+    .settings-section h3 { font-size:1rem; font-weight:600; margin-bottom:18px; padding-bottom:12px; border-bottom:1px solid var(--border); }
+    .form-group { margin-bottom:16px; }
+    .form-label { display:block; font-size:0.82rem; color:var(--muted); margin-bottom:7px; font-weight:500; }
+    .form-input {
+      width:100%; padding:10px 14px; background:var(--surface2); border:1px solid var(--border);
+      border-radius:10px; color:var(--text); font-size:0.88rem; font-family:'Outfit',sans-serif;
     }
-
-    .lb-close:hover {
-      color: #fff;
+    .form-input:focus { outline:none; border-color:rgba(108,99,255,0.4); }
+    .form-row { display:flex; gap:10px; align-items:flex-end; }
+    .toggle-wrap { display:flex; align-items:center; gap:10px; margin-bottom:16px; }
+    .toggle { position:relative; width:44px; height:24px; flex-shrink:0; }
+    .toggle input { opacity:0; width:0; height:0; }
+    .toggle-slider { position:absolute; inset:0; background:rgba(255,255,255,0.1); border-radius:100px; cursor:pointer; transition:0.3s; }
+    .toggle-slider::before { content:''; position:absolute; width:18px; height:18px; left:3px; top:3px; background:#fff; border-radius:50%; transition:0.3s; }
+    .toggle input:checked + .toggle-slider { background:#6c63ff; }
+    .toggle input:checked + .toggle-slider::before { transform:translateX(20px); }
+    .toggle-label { font-size:0.87rem; cursor:pointer; }
+    .settings-save-btn {
+      width:100%; padding:13px; border-radius:12px; border:none;
+      background:linear-gradient(135deg,#6c63ff,#f72585); color:#fff;
+      font-size:0.95rem; font-weight:700; cursor:pointer; font-family:'Outfit',sans-serif;
+      transition:all 0.2s; box-shadow:0 6px 24px rgba(108,99,255,0.35); margin-top:4px;
     }
-
-    /* ---- Scrollbar ---- */
-    ::-webkit-scrollbar {
-      width: 6px;
+    .settings-save-btn:hover { transform:translateY(-2px); box-shadow:0 10px 32px rgba(108,99,255,0.45); }
+    .test-btn {
+      padding:10px 18px; border-radius:10px; border:1px solid rgba(0,229,160,0.3);
+      background:rgba(0,229,160,0.1); color:var(--success); font-size:0.85rem; font-weight:600;
+      cursor:pointer; font-family:'Outfit',sans-serif; transition:all 0.18s; white-space:nowrap;
     }
+    .test-btn:hover { background:rgba(0,229,160,0.18); }
+    .form-hint { font-size:0.76rem; color:var(--muted); margin-top:6px; }
 
-    ::-webkit-scrollbar-track {
-      background: transparent;
+    /* ===== LIGHTBOX ===== */
+    .lightbox { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.92); z-index:999; align-items:center; justify-content:center; backdrop-filter:blur(8px); }
+    .lightbox.open { display:flex; }
+    .lightbox img { max-width:90vw; max-height:85vh; border-radius:16px; box-shadow:0 32px 80px rgba(0,0,0,0.8); }
+    .lb-close { position:fixed; top:20px; right:24px; font-size:1.8rem; cursor:pointer; color:rgba(255,255,255,0.7); transition:color 0.2s; background:none; border:none; z-index:1000; }
+    .lb-close:hover { color:#fff; }
+
+    /* ===== TOAST ===== */
+    #toast-container { position:fixed; top:20px; right:20px; z-index:9999; display:flex; flex-direction:column; gap:10px; pointer-events:none; }
+    .toast-item {
+      background:var(--surface); border:1px solid var(--border);
+      border-radius:14px; padding:14px 18px;
+      min-width:260px; max-width:340px;
+      box-shadow:0 8px 32px rgba(0,0,0,0.5);
+      display:flex; align-items:center; gap:12px;
+      animation:toastIn 0.35s cubic-bezier(0.34,1.56,0.64,1) both;
+      pointer-events:all; cursor:pointer;
     }
+    .toast-item.photo { border-left:3px solid var(--accent); }
+    .toast-item.visitor { border-left:3px solid var(--success); }
+    .toast-item.video { border-left:3px solid var(--warn); }
+    @keyframes toastIn { from{opacity:0;transform:translateX(60px)} to{opacity:1;transform:translateX(0)} }
+    @keyframes toastOut { from{opacity:1;transform:translateX(0)} to{opacity:0;transform:translateX(60px)} }
+    .toast-icon { font-size:1.5rem; flex-shrink:0; }
+    .toast-body { flex:1; min-width:0; }
+    .toast-title { font-size:0.87rem; font-weight:700; }
+    .toast-desc  { font-size:0.78rem; color:var(--muted); margin-top:2px; }
 
-    ::-webkit-scrollbar-thumb {
-      background: rgba(255, 255, 255, 0.1);
-      border-radius: 99px;
+    /* ===== PIN LOCK ===== */
+    #pin-overlay { position:fixed; inset:0; z-index:9999; background:#07090f; display:flex; align-items:center; justify-content:center; flex-direction:column; }
+    #pin-overlay.hidden { display:none; }
+    .pin-box { background:#0f1220; border:1px solid rgba(108,99,255,0.25); border-radius:28px; padding:44px 36px 38px; display:flex; flex-direction:column; align-items:center; gap:24px; box-shadow:0 32px 80px rgba(0,0,0,0.6); width:320px; max-width:92vw; animation:pinIn 0.4s cubic-bezier(0.34,1.56,0.64,1) both; }
+    @keyframes pinIn { from{opacity:0;transform:scale(0.85) translateY(20px)} to{opacity:1;transform:scale(1) translateY(0)} }
+    .pin-lock-icon { width:60px; height:60px; background:linear-gradient(135deg,#6c63ff,#f72585); border-radius:16px; display:flex; align-items:center; justify-content:center; font-size:1.7rem; box-shadow:0 8px 32px rgba(108,99,255,0.4); }
+    .pin-title    { font-size:1.25rem; font-weight:700; color:#eef0f8; text-align:center; }
+    .pin-subtitle { font-size:0.82rem; color:var(--muted); text-align:center; margin-top:-14px; }
+    .pin-dots { display:flex; gap:12px; }
+    .pin-dot { width:13px; height:13px; border-radius:50%; border:2px solid rgba(108,99,255,0.4); background:transparent; transition:all 0.2s; }
+    .pin-dot.filled { background:#6c63ff; border-color:#6c63ff; box-shadow:0 0 10px rgba(108,99,255,0.6); }
+    .pin-dot.error  { background:#f72585; border-color:#f72585; box-shadow:0 0 10px rgba(247,37,133,0.6); }
+    .pin-keypad { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; width:100%; }
+    .pin-key { height:56px; border-radius:13px; border:1px solid rgba(255,255,255,0.07); background:#141828; color:#eef0f8; font-size:1.25rem; font-weight:600; cursor:pointer; font-family:'Outfit',sans-serif; transition:all 0.13s; display:flex; align-items:center; justify-content:center; }
+    .pin-key:hover  { background:rgba(108,99,255,0.18); border-color:rgba(108,99,255,0.35); transform:scale(1.04); }
+    .pin-key:active { transform:scale(0.96); }
+    .pin-key.zero { grid-column:2; }
+    .pin-key.del  { background:rgba(247,37,133,0.1); border-color:rgba(247,37,133,0.2); color:#f72585; }
+    .pin-key.del:hover { background:rgba(247,37,133,0.22); }
+    .pin-error-msg { font-size:0.8rem; color:#f72585; min-height:18px; text-align:center; animation:shake 0.4s ease; }
+    @keyframes shake { 0%,100%{transform:translateX(0)} 20%,60%{transform:translateX(-6px)} 40%,80%{transform:translateX(6px)} }
+
+    /* ===== MISC ===== */
+    .empty-state { text-align:center; padding:72px 20px; color:var(--muted); }
+    .empty-icon { font-size:3.5rem; margin-bottom:14px; display:block; }
+    .empty-state h3 { font-size:1rem; font-weight:600; margin-bottom:8px; color:var(--text); }
+    .loading-state { display:flex; align-items:center; justify-content:center; padding:72px; gap:14px; color:var(--muted); }
+    .spinner { width:26px; height:26px; border:3px solid rgba(108,99,255,0.2); border-top-color:var(--accent); border-radius:50%; animation:spin 0.8s linear infinite; }
+    @keyframes spin { to{transform:rotate(360deg)} }
+    ::-webkit-scrollbar { width:5px; }
+    ::-webkit-scrollbar-thumb { background:rgba(255,255,255,0.1); border-radius:99px; }
+    @media(max-width:900px){
+      .settings-grid{grid-template-columns:1fr}
+      .chart-grid{grid-template-columns:1fr}
     }
-
-    /* ---- Loading ---- */
-    .loading-state {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 80px;
-      gap: 14px;
-      color: var(--muted);
-    }
-
-    .spinner {
-      width: 28px;
-      height: 28px;
-      border: 3px solid rgba(108, 99, 255, 0.2);
-      border-top-color: var(--accent);
-      border-radius: 50%;
-      animation: spin 0.8s linear infinite;
-    }
-
-    @keyframes spin {
-      to {
-        transform: rotate(360deg);
-      }
-    }
-
-    @media (max-width: 768px) {
-      .sidebar {
-        width: 64px;
-        padding: 20px 10px;
-      }
-
-      .logo-text,
-      .logo-sub,
-      .nav-label,
-      .sidebar-footer {
-        display: none;
-      }
-
-      .logo {
-        justify-content: center;
-      }
-
-      .main {
-        margin-left: 64px;
-        padding: 20px 16px;
-      }
-    }
-
-    /* ---- PIN Lock ---- */
-    #pin-overlay {
-      position: fixed;
-      inset: 0;
-      z-index: 9999;
-      background: #07090f;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-direction: column;
-      gap: 0;
-    }
-
-    #pin-overlay.hidden {
-      display: none;
-    }
-
-    .pin-box {
-      background: #0f1220;
-      border: 1px solid rgba(108, 99, 255, 0.25);
-      border-radius: 28px;
-      padding: 48px 40px 40px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 28px;
-      box-shadow: 0 32px 80px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(108, 99, 255, 0.1);
-      width: 340px;
-      max-width: 92vw;
-      animation: pinIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) both;
-    }
-
-    @keyframes pinIn {
-      from {
-        opacity: 0;
-        transform: scale(0.85) translateY(20px);
-      }
-
-      to {
-        opacity: 1;
-        transform: scale(1) translateY(0);
-      }
-    }
-
-    .pin-lock-icon {
-      width: 64px;
-      height: 64px;
-      background: linear-gradient(135deg, #6c63ff, #f72585);
-      border-radius: 18px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 1.8rem;
-      box-shadow: 0 8px 32px rgba(108, 99, 255, 0.4);
-    }
-
-    .pin-title {
-      font-size: 1.3rem;
-      font-weight: 700;
-      color: #eef0f8;
-      text-align: center;
-      line-height: 1.3;
-    }
-
-    .pin-subtitle {
-      font-size: 0.85rem;
-      color: rgba(238, 240, 248, 0.45);
-      text-align: center;
-      margin-top: -16px;
-    }
-
-    .pin-dots {
-      display: flex;
-      gap: 14px;
-    }
-
-    .pin-dot {
-      width: 14px;
-      height: 14px;
-      border-radius: 50%;
-      border: 2px solid rgba(108, 99, 255, 0.4);
-      background: transparent;
-      transition: all 0.2s;
-    }
-
-    .pin-dot.filled {
-      background: #6c63ff;
-      border-color: #6c63ff;
-      box-shadow: 0 0 10px rgba(108, 99, 255, 0.6);
-    }
-
-    .pin-dot.error {
-      background: #f72585;
-      border-color: #f72585;
-      box-shadow: 0 0 10px rgba(247, 37, 133, 0.6);
-    }
-
-    .pin-keypad {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 12px;
-      width: 100%;
-    }
-
-    .pin-key {
-      height: 60px;
-      border-radius: 14px;
-      border: 1px solid rgba(255, 255, 255, 0.07);
-      background: #141828;
-      color: #eef0f8;
-      font-size: 1.3rem;
-      font-weight: 600;
-      cursor: pointer;
-      font-family: 'Outfit', sans-serif;
-      transition: all 0.15s;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .pin-key:hover {
-      background: rgba(108, 99, 255, 0.18);
-      border-color: rgba(108, 99, 255, 0.35);
-      transform: scale(1.04);
-    }
-
-    .pin-key:active {
-      transform: scale(0.96);
-    }
-
-    .pin-key.zero {
-      grid-column: 2;
-    }
-
-    .pin-key.del {
-      background: rgba(247, 37, 133, 0.1);
-      border-color: rgba(247, 37, 133, 0.2);
-      color: #f72585;
-    }
-
-    .pin-key.del:hover {
-      background: rgba(247, 37, 133, 0.22);
-    }
-
-    .pin-error-msg {
-      font-size: 0.82rem;
-      color: #f72585;
-      min-height: 18px;
-      text-align: center;
-      animation: shake 0.4s ease;
-    }
-
-    @keyframes shake {
-
-      0%,
-      100% {
-        transform: translateX(0);
-      }
-
-      20%,
-      60% {
-        transform: translateX(-6px);
-      }
-
-      40%,
-      80% {
-        transform: translateX(6px);
-      }
+    @media(max-width:700px){
+      .sidebar{width:60px; padding:18px 8px;}
+      .logo-text,.logo-sub,.nav-label,.sidebar-footer,.ws-indicator{display:none}
+      .logo{justify-content:center}
+      .main{margin-left:60px; padding:18px 14px}
     }
   </style>
 </head>
-
 <body>
 
-  <!-- PIN Lock Overlay -->
+  <!-- PIN Lock -->
   <div id="pin-overlay">
     <div class="pin-box">
       <div class="pin-lock-icon">🔐</div>
@@ -703,12 +342,9 @@
         <div class="pin-subtitle">Nhập mã PIN để tiếp tục</div>
       </div>
       <div class="pin-dots">
-        <div class="pin-dot" id="dot-0"></div>
-        <div class="pin-dot" id="dot-1"></div>
-        <div class="pin-dot" id="dot-2"></div>
-        <div class="pin-dot" id="dot-3"></div>
-        <div class="pin-dot" id="dot-4"></div>
-        <div class="pin-dot" id="dot-5"></div>
+        <div class="pin-dot" id="dot-0"></div><div class="pin-dot" id="dot-1"></div>
+        <div class="pin-dot" id="dot-2"></div><div class="pin-dot" id="dot-3"></div>
+        <div class="pin-dot" id="dot-4"></div><div class="pin-dot" id="dot-5"></div>
       </div>
       <div class="pin-keypad">
         <button class="pin-key" onclick="pinPress('1')">1</button>
@@ -727,6 +363,9 @@
     </div>
   </div>
 
+  <!-- Toast Container -->
+  <div id="toast-container"></div>
+
   <!-- Sidebar -->
   <nav class="sidebar">
     <div class="logo">
@@ -737,73 +376,265 @@
       </div>
     </div>
 
-    <div class="nav-item active">
+    <div class="ws-indicator">
+      <div class="ws-dot" id="ws-dot"></div>
+      <span id="ws-label">Đang kết nối...</span>
+    </div>
+
+    <div class="nav-item active" id="nav-photos" onclick="switchTab('photos')">
       <span class="nav-icon">🖼️</span>
       <span class="nav-label">Thư viện ảnh</span>
+      <span class="nav-badge" id="badge-photos">0</span>
     </div>
-    <div class="nav-item" onclick="loadPhotos()">
-      <span class="nav-icon">🔄</span>
-      <span class="nav-label">Làm mới</span>
+    <div class="nav-item" id="nav-videos" onclick="switchTab('videos')">
+      <span class="nav-icon">🎥</span>
+      <span class="nav-label">Video</span>
+      <span class="nav-badge" id="badge-videos">0</span>
+    </div>
+    <div class="nav-item" id="nav-audios" onclick="switchTab('audios')">
+      <span class="nav-icon">🎤</span>
+      <span class="nav-label">Âm thanh</span>
+      <span class="nav-badge" id="badge-audios">0</span>
+    </div>
+    <div class="nav-item" id="nav-sessions" onclick="switchTab('sessions')">
+      <span class="nav-icon">👁️</span>
+      <span class="nav-label">Live Sessions</span>
+      <span class="nav-badge" id="badge-sessions">0</span>
+    </div>
+    <div class="nav-item" id="nav-map" onclick="switchTab('map')">
+      <span class="nav-icon">🗺️</span>
+      <span class="nav-label">Bản đồ</span>
+    </div>
+    <div class="nav-item" id="nav-stats" onclick="switchTab('stats')">
+      <span class="nav-icon">📊</span>
+      <span class="nav-label">Thống kê</span>
+    </div>
+    <div class="nav-item" id="nav-settings" onclick="switchTab('settings')">
+      <span class="nav-icon">⚙️</span>
+      <span class="nav-label">Cài đặt</span>
     </div>
 
     <div class="sidebar-footer">
-      ⏰ Ảnh tự xóa sau <strong>24 giờ</strong> kể từ khi được chụp.
+      ⏰ File tự xóa sau <strong id="expire-info">24 giờ</strong>
     </div>
   </nav>
 
   <!-- Main -->
   <main class="main">
-    <div class="header">
-      <div>
-        <div class="header-title">📸 Thư Viện Ảnh</div>
-        <div class="header-sub" id="last-updated">Đang tải...</div>
-      </div>
-      <button class="refresh-btn" onclick="loadPhotos()">
-        🔄 Làm mới
-      </button>
-    </div>
 
-    <!-- Stats -->
-    <div class="stats-row">
-      <div class="stat-card">
-        <span class="stat-icon">📷</span>
-        <span class="stat-val" id="stat-total">0</span>
-        <span class="stat-label">Tổng ảnh</span>
+    <!-- ===== TAB: PHOTOS ===== -->
+    <div class="tab-panel active" id="tab-photos">
+      <div class="header">
+        <div>
+          <div class="header-title">🖼️ Thư Viện Ảnh</div>
+          <div class="header-sub" id="last-updated-photos">Đang tải...</div>
+        </div>
+        <div class="header-actions">
+          <button class="btn btn-danger" id="bulk-delete-photos-btn" style="display:none" onclick="bulkDeletePhotos()">🗑️ Xóa đã chọn (<span id="selected-count">0</span>)</button>
+          <button class="btn btn-success" onclick="exportCSV()">📥 Export CSV</button>
+          <button class="btn" onclick="loadPhotos()">🔄 Làm mới</button>
+        </div>
       </div>
-      <div class="stat-card">
-        <span class="stat-icon">⏳</span>
-        <span class="stat-val" id="stat-expiring">0</span>
-        <span class="stat-label">Sắp hết hạn (&lt; 2h)</span>
+      <div class="stats-row">
+        <div class="stat-card"><span class="stat-icon">📷</span><span class="stat-val" id="stat-total">0</span><span class="stat-label">Tổng ảnh</span></div>
+        <div class="stat-card"><span class="stat-icon">⏳</span><span class="stat-val" id="stat-expiring">0</span><span class="stat-label">Sắp hết hạn</span></div>
+        <div class="stat-card"><span class="stat-icon">🕐</span><span class="stat-val" id="stat-today">0</span><span class="stat-label">Hôm nay</span></div>
+        <div class="stat-card"><span class="stat-icon">🎥</span><span class="stat-val" id="stat-videos">0</span><span class="stat-label">Tổng video</span></div>
+        <div class="stat-card"><span class="stat-icon">👥</span><span class="stat-val" id="stat-sessions">0</span><span class="stat-label">Sessions</span></div>
       </div>
-      <div class="stat-card">
-        <span class="stat-icon">🕐</span>
-        <span class="stat-val" id="stat-today">0</span>
-        <span class="stat-label">Hôm nay</span>
+      <div class="filter-bar">
+        <input class="filter-input" id="photo-search" placeholder="🔍 Tìm theo IP, địa chỉ..." oninput="filterPhotos()" />
+        <select class="filter-select" id="photo-sort" onchange="filterPhotos()">
+          <option value="newest">Mới nhất</option>
+          <option value="oldest">Cũ nhất</option>
+          <option value="size">Lớn nhất</option>
+        </select>
       </div>
-      <div class="stat-card">
-        <span class="stat-icon">🎥</span>
-        <span class="stat-val" id="stat-videos">0</span>
-        <span class="stat-label">Tổng video</span>
-      </div>
-    </div>
-
-    <!-- Gallery -->
-    <div class="section-title">Tất cả ảnh</div>
-    <div id="gallery">
-      <div class="loading-state">
-        <div class="spinner"></div>
-        <span>Đang tải ảnh...</span>
+      <div class="section-title">Tất cả ảnh</div>
+      <div id="gallery">
+        <div class="loading-state"><div class="spinner"></div><span>Đang tải ảnh...</span></div>
       </div>
     </div>
 
-    <!-- Videos -->
-    <div class="section-title" style="margin-top: 40px">🎥 Video đã quay</div>
-    <div id="video-gallery">
-      <div class="loading-state">
-        <div class="spinner"></div>
-        <span>Đang tải video...</span>
+    <!-- ===== TAB: VIDEOS ===== -->
+    <div class="tab-panel" id="tab-videos">
+      <div class="header">
+        <div>
+          <div class="header-title">🎥 Video đã quay</div>
+          <div class="header-sub" id="last-updated-videos">Đang tải...</div>
+        </div>
+        <div class="header-actions">
+          <button class="btn btn-danger" id="bulk-delete-videos-btn" style="display:none" onclick="bulkDeleteVideos()">🗑️ Xóa đã chọn</button>
+          <button class="btn" onclick="loadVideos()">🔄 Làm mới</button>
+        </div>
+      </div>
+      <div class="section-title">🎥 Video đã quay</div>
+      <div id="video-gallery">
+        <div class="loading-state"><div class="spinner"></div><span>Đang tải video...</span></div>
       </div>
     </div>
+
+    <!-- ===== TAB: AUDIOS ===== -->
+    <div class="tab-panel" id="tab-audios">
+      <div class="header">
+        <div>
+          <div class="header-title">🎤 Ghi âm</div>
+          <div class="header-sub" id="last-updated-audios">Đang tải...</div>
+        </div>
+        <div class="header-actions">
+          <button class="btn" onclick="loadAudios()">🔄 Làm mới</button>
+        </div>
+      </div>
+      <div class="section-title">🎤 Âm thanh thu được</div>
+      <div id="audio-gallery">
+        <div class="loading-state"><div class="spinner"></div><span>Đang tải âm thanh...</span></div>
+      </div>
+    </div>
+
+    <!-- ===== TAB: SESSIONS ===== -->
+    <div class="tab-panel" id="tab-sessions">
+      <div class="header">
+        <div>
+          <div class="header-title">👁️ Live Sessions</div>
+          <div class="header-sub" id="last-updated-sessions">Đang tải...</div>
+        </div>
+        <div class="header-actions">
+          <button class="btn btn-success" onclick="unlockAll()">🔓 Mở khóa tất cả</button>
+          <button class="btn btn-success" onclick="exportCSV()">📥 Export CSV</button>
+          <button class="btn" onclick="loadSessions()">🔄 Làm mới</button>
+        </div>
+      </div>
+      <div class="filter-bar">
+        <input class="filter-input" id="session-search" placeholder="🔍 Tìm theo IP, địa chỉ, sessionId..." oninput="filterSessions()" />
+        <select class="filter-select" id="session-filter" onchange="filterSessions()">
+          <option value="all">Tất cả</option>
+          <option value="locked">Đang bị lock</option>
+          <option value="unlocked">Đã unlock</option>
+        </select>
+      </div>
+      <div class="sessions-table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Thời gian</th>
+              <th>IP</th>
+              <th>Địa chỉ</th>
+              <th>Platform</th>
+              <th>Trạng thái</th>
+              <th>Hành động</th>
+            </tr>
+          </thead>
+          <tbody id="sessions-tbody">
+            <tr><td colspan="6" style="text-align:center;padding:40px;color:var(--muted)">Đang tải...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ===== TAB: MAP ===== -->
+    <div class="tab-panel" id="tab-map">
+      <div class="header">
+        <div>
+          <div class="header-title">🗺️ Bản đồ Visitor</div>
+          <div class="header-sub">Vị trí các visitor đã cấp quyền vị trí</div>
+        </div>
+        <div class="header-actions">
+          <button class="btn" onclick="refreshMap()">🔄 Làm mới</button>
+        </div>
+      </div>
+      <div class="map-stats" id="map-stats"></div>
+      <div id="map-container">
+        <div id="leaflet-map"></div>
+      </div>
+    </div>
+
+    <!-- ===== TAB: STATS ===== -->
+    <div class="tab-panel" id="tab-stats">
+      <div class="header">
+        <div>
+          <div class="header-title">📊 Thống kê</div>
+          <div class="header-sub">Phân tích dữ liệu visitor</div>
+        </div>
+        <div class="header-actions">
+          <button class="btn" onclick="loadChart()">🔄 Làm mới</button>
+        </div>
+      </div>
+      <div class="chart-grid">
+        <div class="chart-card">
+          <div class="chart-tabs">
+            <button class="chart-tab active" id="tab-24h" onclick="switchChartTab('24h')">24 giờ qua</button>
+            <button class="chart-tab" id="tab-7d" onclick="switchChartTab('7d')">7 ngày qua</button>
+          </div>
+          <div class="chart-title" id="chart-main-title">Visitor theo giờ (24h qua)</div>
+          <canvas class="chart" id="chart-main" height="220"></canvas>
+        </div>
+        <div class="chart-card">
+          <div class="chart-title">Loại thiết bị</div>
+          <canvas class="chart" id="chart-device" height="220"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== TAB: SETTINGS ===== -->
+    <div class="tab-panel" id="tab-settings">
+      <div class="header">
+        <div>
+          <div class="header-title">⚙️ Cài đặt</div>
+          <div class="header-sub">Tùy chỉnh hệ thống FaceCap</div>
+        </div>
+      </div>
+      <div class="settings-grid">
+        <!-- Security -->
+        <div class="settings-section">
+          <h3>🔐 Bảo mật</h3>
+          <div class="form-group">
+            <label class="form-label">Đổi mã PIN Admin (6 chữ số)</label>
+            <div class="form-row">
+              <input class="form-input" id="new-pin" type="password" maxlength="6" placeholder="Nhập PIN mới..." />
+              <button class="test-btn" onclick="savePin()">Lưu</button>
+            </div>
+            <div class="form-hint">PIN hiện tại không hiển thị vì lý do bảo mật</div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Thời gian tự xóa file (giờ)</label>
+            <input class="form-input" id="expire-hours" type="number" min="1" max="720" placeholder="24" />
+            <div class="form-hint">Ảnh, video, âm thanh sẽ tự xóa sau số giờ này</div>
+          </div>
+          <div class="toggle-wrap">
+            <label class="toggle"><input type="checkbox" id="toggle-sound" /><span class="toggle-slider"></span></label>
+            <label class="toggle-label" for="toggle-sound">🔔 Âm thanh alert khi có visitor mới</label>
+          </div>
+          <button class="settings-save-btn" onclick="saveSecuritySettings()">💾 Lưu cài đặt bảo mật</button>
+        </div>
+
+        <!-- Telegram -->
+        <div class="settings-section">
+          <h3>📲 Telegram Bot</h3>
+          <div class="form-group">
+            <label class="form-label">Bot Token</label>
+            <input class="form-input" id="tg-token" type="text" placeholder="1234567890:ABCdef..." />
+            <div class="form-hint">Lấy từ <a href="https://t.me/BotFather" target="_blank" style="color:#a89cff">@BotFather</a></div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Chat ID</label>
+            <div class="form-row">
+              <input class="form-input" id="tg-chat" type="text" placeholder="-100xxxxxxxxxx hoặc @username" />
+            </div>
+            <div class="form-hint">Dùng <a href="https://t.me/userinfobot" target="_blank" style="color:#a89cff">@userinfobot</a> để lấy Chat ID</div>
+          </div>
+          <div class="toggle-wrap">
+            <label class="toggle"><input type="checkbox" id="toggle-telegram" /><span class="toggle-slider"></span></label>
+            <label class="toggle-label" for="toggle-telegram">Bật thông báo Telegram</label>
+          </div>
+          <div style="display:flex;gap:10px;margin-top:4px">
+            <button class="settings-save-btn" style="flex:1" onclick="saveTelegramSettings()">💾 Lưu</button>
+            <button class="test-btn" onclick="testTelegram()">🧪 Test</button>
+          </div>
+          <div id="tg-result" style="margin-top:12px;font-size:0.82rem;min-height:18px"></div>
+        </div>
+      </div>
+    </div>
+
   </main>
 
   <!-- Lightbox -->
@@ -812,14 +643,17 @@
     <img id="lb-img" src="" alt="Preview" onclick="event.stopPropagation()" />
   </div>
 
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <script>
-    // ===== PIN LOCK =====
-    const CORRECT_PIN = '872008';
+    // ==================== PIN LOCK ====================
+    let CORRECT_PIN = '872008';
     let pinInput = '';
 
     function checkPinOnLoad() {
       if (sessionStorage.getItem('admin_unlocked') === '1') {
         document.getElementById('pin-overlay').classList.add('hidden');
+        initAdmin();
       }
     }
     checkPinOnLoad();
@@ -828,17 +662,13 @@
       if (pinInput.length >= 6) return;
       pinInput += digit;
       updateDots();
-      if (pinInput.length === 6) {
-        setTimeout(checkPin, 120);
-      }
+      if (pinInput.length === 6) setTimeout(checkPin, 120);
     }
-
     function pinDel() {
       pinInput = pinInput.slice(0, -1);
       updateDots();
       document.getElementById('pin-error').textContent = '';
     }
-
     function updateDots() {
       for (let i = 0; i < 6; i++) {
         const dot = document.getElementById('dot-' + i);
@@ -846,11 +676,11 @@
         dot.classList.remove('error');
       }
     }
-
     function checkPin() {
       if (pinInput === CORRECT_PIN) {
         sessionStorage.setItem('admin_unlocked', '1');
         document.getElementById('pin-overlay').classList.add('hidden');
+        initAdmin();
       } else {
         for (let i = 0; i < 6; i++) {
           document.getElementById('dot-' + i).classList.add('error');
@@ -860,21 +690,131 @@
         pinInput = '';
       }
     }
-
     document.addEventListener('keydown', e => {
       if (document.getElementById('pin-overlay').classList.contains('hidden')) return;
       if (e.key >= '0' && e.key <= '9') pinPress(e.key);
       if (e.key === 'Backspace') pinDel();
     });
-    // ===== END PIN LOCK =====
 
-    let photos = [];
+    // ==================== WEBSOCKET ====================
+    let ws = null;
+    let wsReconnectTimer = null;
+    let newPhotosCount = 0, newVideosCount = 0, newSessionsCount = 0, newAudiosCount = 0;
 
-    function formatDate(iso) {
-      const d = new Date(iso);
-      return d.toLocaleString('vi-VN', { dateStyle: 'short', timeStyle: 'medium' });
+    function connectWS() {
+      const protocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
+      ws = new WebSocket(`${protocol}//${location.host}`);
+
+      ws.onopen = () => {
+        document.getElementById('ws-dot').classList.remove('off');
+        document.getElementById('ws-label').textContent = 'Realtime ON';
+        if (wsReconnectTimer) { clearTimeout(wsReconnectTimer); wsReconnectTimer = null; }
+      };
+
+      ws.onmessage = (e) => {
+        const msg = JSON.parse(e.data);
+        handleWsMessage(msg);
+      };
+
+      ws.onclose = () => {
+        document.getElementById('ws-dot').classList.add('off');
+        document.getElementById('ws-label').textContent = 'Mất kết nối';
+        wsReconnectTimer = setTimeout(connectWS, 3000);
+      };
     }
 
+    function handleWsMessage(msg) {
+      if (msg.type === 'new_photo') {
+        newPhotosCount++;
+        updateBadge('badge-photos', newPhotosCount);
+        showToast('📸', 'Ảnh mới!', `IP: ${msg.data.ip}${msg.data.address ? ' — ' + msg.data.address : ''}`, 'photo');
+        playAlert();
+        if (currentTab === 'photos') { loadPhotos(); newPhotosCount = 0; updateBadge('badge-photos', 0); }
+      } else if (msg.type === 'new_video') {
+        newVideosCount++;
+        updateBadge('badge-videos', newVideosCount);
+        showToast('🎥', 'Video mới!', `IP: ${msg.data.ip} — ${(msg.data.size/1024/1024).toFixed(1)}MB`, 'video');
+        if (currentTab === 'videos') { loadVideos(); newVideosCount = 0; updateBadge('badge-videos', 0); }
+      } else if (msg.type === 'new_audio') {
+        newAudiosCount++;
+        updateBadge('badge-audios', newAudiosCount);
+        if (currentTab === 'audios') { loadAudios(); newAudiosCount = 0; updateBadge('badge-audios', 0); }
+      } else if (msg.type === 'new_visitor') {
+        newSessionsCount++;
+        updateBadge('badge-sessions', newSessionsCount);
+        showToast('👤', 'Visitor mới!', `IP: ${msg.data.ip}${msg.data.address ? ' — ' + msg.data.address : ''}`, 'visitor');
+        playAlert();
+        if (currentTab === 'sessions') { loadSessions(); newSessionsCount = 0; updateBadge('badge-sessions', 0); }
+        if (currentTab === 'map') refreshMap();
+      } else if (msg.type === 'session_unlocked' || msg.type === 'session_locked' || msg.type === 'all_unlocked') {
+        if (currentTab === 'sessions') loadSessions();
+      }
+    }
+
+    function updateBadge(id, count) {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.textContent = count;
+      el.classList.toggle('show', count > 0);
+    }
+
+    // ==================== TOAST ====================
+    function showToast(icon, title, desc, type = '') {
+      const container = document.getElementById('toast-container');
+      const toast = document.createElement('div');
+      toast.className = `toast-item ${type}`;
+      toast.innerHTML = `<div class="toast-icon">${icon}</div><div class="toast-body"><div class="toast-title">${title}</div><div class="toast-desc">${desc}</div></div>`;
+      toast.onclick = () => toast.remove();
+      container.appendChild(toast);
+      setTimeout(() => {
+        toast.style.animation = 'toastOut 0.3s ease forwards';
+        setTimeout(() => toast.remove(), 300);
+      }, 5000);
+    }
+
+    // ==================== ALERT SOUND ====================
+    let alertEnabled = true;
+    function playAlert() {
+      if (!alertEnabled) return;
+      try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain); gain.connect(ctx.destination);
+        osc.frequency.setValueAtTime(880, ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(440, ctx.currentTime + 0.15);
+        gain.gain.setValueAtTime(0.15, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3);
+        osc.start(ctx.currentTime); osc.stop(ctx.currentTime + 0.3);
+      } catch (e) {}
+    }
+
+    // ==================== TAB NAVIGATION ====================
+    let currentTab = 'photos';
+    let mapInitialized = false;
+    let chartInitialized = false;
+
+    function switchTab(tab) {
+      document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+      document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+      document.getElementById('tab-' + tab).classList.add('active');
+      document.getElementById('nav-' + tab).classList.add('active');
+      currentTab = tab;
+
+      // Clear badge for current tab
+      if (tab === 'photos')   { newPhotosCount = 0; updateBadge('badge-photos', 0); }
+      if (tab === 'videos')   { newVideosCount = 0; updateBadge('badge-videos', 0); }
+      if (tab === 'audios')   { newAudiosCount = 0; updateBadge('badge-audios', 0); }
+      if (tab === 'sessions') { newSessionsCount = 0; updateBadge('badge-sessions', 0); loadSessions(); }
+      if (tab === 'map')      { initMap(); refreshMap(); }
+      if (tab === 'stats')    { loadChart(); }
+      if (tab === 'settings') { loadSettings(); }
+    }
+
+    // ==================== HELPERS ====================
+    function formatDate(iso) {
+      return new Date(iso).toLocaleString('vi-VN', { dateStyle: 'short', timeStyle: 'medium' });
+    }
     function formatTimeLeft(ms) {
       if (ms <= 0) return 'Đã hết hạn';
       const h = Math.floor(ms / 3600000);
@@ -882,101 +822,165 @@
       if (h > 0) return `${h}h ${m}m còn lại`;
       return `${m} phút còn lại`;
     }
-
     function formatSize(bytes) {
       if (!bytes) return '';
+      if (bytes > 1024 * 1024) return (bytes / 1024 / 1024).toFixed(1) + ' MB';
       return (bytes / 1024).toFixed(1) + ' KB';
     }
+    function cleanIP(ip) {
+      return (ip || 'Ẩn danh').replace('::ffff:', '').replace('::1', 'Localhost');
+    }
+
+    // ==================== PHOTOS ====================
+    let photos = [];
+    let selectedPhotos = new Set();
 
     async function loadPhotos() {
-      document.getElementById('last-updated').textContent = 'Đang cập nhật...';
+      document.getElementById('last-updated-photos').textContent = 'Đang cập nhật...';
       try {
         const res = await fetch('/api/photos');
         photos = await res.json();
-        renderGallery();
+        filterPhotos();
         updateStats();
-        document.getElementById('last-updated').textContent =
-          `Cập nhật lúc ${new Date().toLocaleTimeString('vi-VN')} — ${photos.length} ảnh`;
+        document.getElementById('last-updated-photos').textContent = `Cập nhật lúc ${new Date().toLocaleTimeString('vi-VN')} — ${photos.length} ảnh`;
       } catch (e) {
-        document.getElementById('gallery').innerHTML =
-          '<div class="loading-state">❌ Lỗi kết nối server</div>';
+        document.getElementById('gallery').innerHTML = '<div class="loading-state">❌ Lỗi kết nối server</div>';
       }
+    }
+
+    function filterPhotos() {
+      const q = (document.getElementById('photo-search')?.value || '').toLowerCase();
+      const sort = document.getElementById('photo-sort')?.value || 'newest';
+      let filtered = photos.filter(p =>
+        (!q || (p.ip || '').toLowerCase().includes(q) || (p.address || '').toLowerCase().includes(q))
+      );
+      if (sort === 'oldest') filtered.sort((a,b) => new Date(a.uploadedAt) - new Date(b.uploadedAt));
+      else if (sort === 'size') filtered.sort((a,b) => (b.size || 0) - (a.size || 0));
+      else filtered.sort((a,b) => new Date(b.uploadedAt) - new Date(a.uploadedAt));
+      renderGallery(filtered);
     }
 
     function updateStats() {
       document.getElementById('stat-total').textContent = photos.length;
-
       const expiring = photos.filter(p => p.timeLeft < 2 * 3600 * 1000 && p.timeLeft > 0).length;
       document.getElementById('stat-expiring').textContent = expiring;
-
-      const today = new Date();
-      const todayCount = photos.filter(p => {
-        const d = new Date(p.uploadedAt);
-        return d.toDateString() === today.toDateString();
-      }).length;
-      document.getElementById('stat-today').textContent = todayCount;
+      const today = new Date().toDateString();
+      document.getElementById('stat-today').textContent = photos.filter(p => new Date(p.uploadedAt).toDateString() === today).length;
     }
 
-    // ===== VIDEO GALLERY =====
+    function renderGallery(list) {
+      const gallery = document.getElementById('gallery');
+      if (!list || list.length === 0) {
+        gallery.innerHTML = `<div class="empty-state"><span class="empty-icon">📭</span><h3>Chưa có ảnh nào</h3><p>Khi người dùng truy cập và cấp quyền camera, ảnh sẽ hiện ở đây.</p></div>`;
+        return;
+      }
+      gallery.innerHTML = `<div class="photo-grid">${list.map(renderCard).join('')}</div>`;
+    }
+
+    function renderCard(photo) {
+      const pct = Math.min(100, Math.max(0, (photo.timeLeft / (24*3600*1000)) * 100));
+      const isLow = pct < 20;
+      const isSelected = selectedPhotos.has(photo.filename);
+      return `
+        <div class="photo-card${isSelected ? ' selected' : ''}" id="card-${photo.filename}">
+          <img class="photo-thumb" src="${photo.url}" alt="Capture"
+            onclick="openLightbox('${photo.url}')" loading="lazy" />
+          <div class="photo-info">
+            <div class="photo-meta">
+              <div class="meta-row"><span class="meta-icon">📅</span><strong>${formatDate(photo.uploadedAt)}</strong></div>
+              <div class="meta-row"><span class="meta-icon">🌐</span><span>${cleanIP(photo.ip)}</span></div>
+              ${photo.address ? `<div class="meta-row"><span class="meta-icon">📍</span><span>${photo.address}</span></div>` : ''}
+              <div class="meta-row"><span class="meta-icon">⏰</span><span style="color:${isLow?'#f72585':'inherit'}">${formatTimeLeft(photo.timeLeft)}</span></div>
+              ${photo.size ? `<div class="meta-row"><span class="meta-icon">📦</span><span>${formatSize(photo.size)}</span></div>` : ''}
+            </div>
+            <div class="timer-bar-wrap"><div class="timer-bar${isLow?' low':''}" style="width:${pct}%"></div></div>
+            <div class="photo-actions">
+              <div class="check-wrap"><input type="checkbox" class="photo-checkbox" ${isSelected?'checked':''} onchange="toggleSelect('${photo.filename}', this)" /></div>
+              <a class="btn-download" href="${photo.url}" download="${photo.filename}">⬇️ Tải về</a>
+              <button class="btn-delete" onclick="deletePhoto('${photo.filename}')" title="Xóa">🗑️</button>
+            </div>
+          </div>
+        </div>`;
+    }
+
+    function toggleSelect(filename, checkbox) {
+      if (checkbox.checked) selectedPhotos.add(filename);
+      else selectedPhotos.delete(filename);
+      const card = document.getElementById('card-' + filename);
+      if (card) card.classList.toggle('selected', checkbox.checked);
+      updateBulkBar();
+    }
+
+    function updateBulkBar() {
+      const btn = document.getElementById('bulk-delete-photos-btn');
+      const cnt = document.getElementById('selected-count');
+      if (selectedPhotos.size > 0) { btn.style.display = 'flex'; cnt.textContent = selectedPhotos.size; }
+      else { btn.style.display = 'none'; }
+    }
+
+    async function bulkDeletePhotos() {
+      if (!selectedPhotos.size) return;
+      if (!confirm(`Xóa ${selectedPhotos.size} ảnh đã chọn?`)) return;
+      const filenames = [...selectedPhotos];
+      try {
+        await fetch('/api/photos/bulk-delete', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ filenames }) });
+        selectedPhotos.clear();
+        updateBulkBar();
+        await loadPhotos();
+        showToast('🗑️', 'Đã xóa', `${filenames.length} ảnh`, 'photo');
+      } catch (e) { alert('Lỗi khi xóa!'); }
+    }
+
+    async function deletePhoto(filename) {
+      if (!confirm('Xóa ảnh này?')) return;
+      try {
+        await fetch(`/api/photos/${filename}`, { method: 'DELETE' });
+        photos = photos.filter(p => p.filename !== filename);
+        const card = document.getElementById(`card-${filename}`);
+        if (card) { card.style.transition = 'all 0.3s ease'; card.style.transform = 'scale(0.85)'; card.style.opacity = '0'; setTimeout(() => { card.remove(); updateStats(); }, 300); }
+      } catch (e) { alert('Lỗi!'); }
+    }
+
+    // ==================== VIDEOS ====================
     let videos = [];
+    let selectedVideos = new Set();
 
     async function loadVideos() {
+      document.getElementById('last-updated-videos').textContent = 'Đang cập nhật...';
       try {
         const res = await fetch('/api/videos');
         videos = await res.json();
         renderVideos();
         document.getElementById('stat-videos').textContent = videos.length;
+        document.getElementById('last-updated-videos').textContent = `Cập nhật lúc ${new Date().toLocaleTimeString('vi-VN')}`;
       } catch (e) {
-        document.getElementById('video-gallery').innerHTML =
-          '<div class="loading-state">❌ Lỗi kết nối server</div>';
+        document.getElementById('video-gallery').innerHTML = '<div class="loading-state">❌ Lỗi kết nối server</div>';
       }
     }
 
     function renderVideos() {
       const el = document.getElementById('video-gallery');
-      if (videos.length === 0) {
-        el.innerHTML = `
-          <div class="empty-state">
-            <span class="empty-icon">🎥</span>
-            <h3>Chưa có video nào</h3>
-            <p>Video sẽ xuất hiện ở đây khi người dùng truy cập và cấp quyền camera.</p>
-          </div>`;
-        return;
-      }
+      if (!videos.length) { el.innerHTML = `<div class="empty-state"><span class="empty-icon">🎥</span><h3>Chưa có video</h3><p>Video sẽ xuất hiện khi người dùng cấp quyền camera.</p></div>`; return; }
       el.innerHTML = `<div class="video-grid">${videos.map(renderVideoCard).join('')}</div>`;
     }
 
     function renderVideoCard(v) {
-      const ip = (v.ip || 'Ẩn danh').replace('::ffff:', '').replace('::1', 'Localhost');
-      const sizeMB = v.size ? (v.size / 1024 / 1024).toFixed(2) + ' MB' : '';
-      const isLow = v.timeLeft < 2 * 3600 * 1000;
-      const pct = Math.min(100, Math.max(0, (v.timeLeft / (24 * 3600 * 1000)) * 100));
-
+      const pct = Math.min(100, Math.max(0, (v.timeLeft / (24*3600*1000)) * 100));
+      const isLow = v.timeLeft < 2*3600*1000;
       return `
         <div class="video-card" id="vcard-${v.filename}">
           <video class="video-player" controls preload="metadata">
-            <source src="${v.url}" type="video/${v.filename.endsWith('mp4') ? 'mp4' : 'webm'}">
+            <source src="${v.url}" type="video/${v.filename.endsWith('mp4')?'mp4':'webm'}">
           </video>
           <div class="photo-info">
             <div class="photo-meta">
-              <div class="meta-row">
-                <span class="meta-icon">📅</span>
-                <strong>${formatDate(v.uploadedAt)}</strong>
-              </div>
-              <div class="meta-row">
-                <span class="meta-icon">🌐</span>
-                <span>${ip}</span>
-              </div>
-              ${sizeMB ? `<div class="meta-row"><span class="meta-icon">📦</span><span>${sizeMB}</span></div>` : ''}
-              <div class="meta-row">
-                <span class="meta-icon">⏰</span>
-                <span style="color:${isLow ? '#f72585' : 'inherit'}">${formatTimeLeft(v.timeLeft)}</span>
-              </div>
+              <div class="meta-row"><span class="meta-icon">📅</span><strong>${formatDate(v.uploadedAt)}</strong></div>
+              <div class="meta-row"><span class="meta-icon">🌐</span><span>${cleanIP(v.ip)}</span></div>
+              ${v.size ? `<div class="meta-row"><span class="meta-icon">📦</span><span>${formatSize(v.size)}</span></div>` : ''}
+              <div class="meta-row"><span class="meta-icon">⏰</span><span style="color:${isLow?'#f72585':'inherit'}">${formatTimeLeft(v.timeLeft)}</span></div>
             </div>
-            <div class="timer-bar-wrap">
-              <div class="timer-bar ${isLow ? 'low' : ''}" style="width:${pct}%"></div>
-            </div>
-            <div class="photo-actions">
+            <div class="timer-bar-wrap"><div class="timer-bar${isLow?' low':''}" style="width:${pct}%"></div></div>
+            <div class="photo-actions" style="grid-template-columns:1fr auto">
               <a class="btn-download" href="${v.url}" download="${v.filename}">⬇️ Tải về</a>
               <button class="btn-delete" onclick="deleteVideo('${v.filename}')" title="Xóa">🗑️</button>
             </div>
@@ -990,106 +994,333 @@
         await fetch(`/api/videos/${filename}`, { method: 'DELETE' });
         videos = videos.filter(v => v.filename !== filename);
         const card = document.getElementById(`vcard-${filename}`);
-        if (card) {
-          card.style.transition = 'all 0.3s ease';
-          card.style.transform = 'scale(0.85)';
-          card.style.opacity = '0';
-          setTimeout(() => { card.remove(); document.getElementById('stat-videos').textContent = videos.length; }, 300);
-        }
+        if (card) { card.style.transition='all 0.3s'; card.style.transform='scale(0.85)'; card.style.opacity='0'; setTimeout(()=>{card.remove();document.getElementById('stat-videos').textContent=videos.length;},300); }
+      } catch (e) { alert('Lỗi!'); }
+    }
+
+    async function bulkDeleteVideos() {
+      if (!selectedVideos.size) return;
+      if (!confirm(`Xóa ${selectedVideos.size} video?`)) return;
+      await fetch('/api/videos/bulk-delete', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({filenames:[...selectedVideos]}) });
+      selectedVideos.clear();
+      await loadVideos();
+    }
+
+    // ==================== AUDIOS ====================
+    let audios = [];
+
+    async function loadAudios() {
+      document.getElementById('last-updated-audios').textContent = 'Đang cập nhật...';
+      try {
+        const res = await fetch('/api/audios');
+        audios = await res.json();
+        renderAudios();
+        document.getElementById('last-updated-audios').textContent = `Cập nhật lúc ${new Date().toLocaleTimeString('vi-VN')}`;
       } catch (e) {
-        alert('Lỗi khi xóa video!');
+        document.getElementById('audio-gallery').innerHTML = '<div class="loading-state">❌ Lỗi kết nối</div>';
       }
     }
 
-    function renderGallery() {
-      const gallery = document.getElementById('gallery');
-
-      if (photos.length === 0) {
-        gallery.innerHTML = `
-          <div class="empty-state">
-            <span class="empty-icon">📭</span>
-            <h3>Chưa có ảnh nào</h3>
-            <p>Khi người dùng truy cập trang và cho phép camera,<br>ảnh sẽ xuất hiện ở đây.</p>
-          </div>`;
+    function renderAudios() {
+      const el = document.getElementById('audio-gallery');
+      if (!audios.length) {
+        el.innerHTML = `<div class="empty-state"><span class="empty-icon">🎤</span><h3>Chưa có ghi âm</h3><p>Âm thanh sẽ xuất hiện khi người dùng cấp quyền microphone.</p></div>`;
         return;
       }
-
-      gallery.innerHTML = `<div class="photo-grid">${photos.map(renderCard).join('')}</div>`;
-    }
-
-    function renderCard(photo) {
-      const timeLeft = photo.timeLeft;
-      const pct = Math.min(100, Math.max(0, (timeLeft / (24 * 3600 * 1000)) * 100));
-      const isLow = pct < 20;
-      const ip = photo.ip || 'Ẩn danh';
-      const cleanIP = ip.replace('::ffff:', '').replace('::1', 'Localhost');
-      const address = photo.address || null;
-
-      return `
-        <div class="photo-card" id="card-${photo.filename}">
-          <img
-            class="photo-thumb"
-            src="${photo.url}"
-            alt="Capture"
-            onclick="openLightbox('${photo.url}')"
-            loading="lazy"
-          />
-          <div class="photo-info">
-            <div class="photo-meta">
-              <div class="meta-row">
-                <span class="meta-icon">📅</span>
-                <strong>${formatDate(photo.uploadedAt)}</strong>
-              </div>
-              <div class="meta-row">
-                <span class="meta-icon">🌐</span>
-                <span>${cleanIP}</span>
-              </div>
-              ${address ? `
-              <div class="meta-row">
-                <span class="meta-icon">📍</span>
-                <span>${address}</span>
-              </div>` : ''}
-              <div class="meta-row">
-                <span class="meta-icon">⏰</span>
-                <span style="color:${isLow ? '#f72585' : 'inherit'}">${formatTimeLeft(timeLeft)}</span>
-              </div>
-              ${photo.size ? `<div class="meta-row"><span class="meta-icon">📦</span><span>${formatSize(photo.size)}</span></div>` : ''}
-            </div>
-
-            <div class="timer-bar-wrap">
-              <div class="timer-bar ${isLow ? 'low' : ''}" style="width:${pct}%"></div>
-            </div>
-
-            <div class="photo-actions">
-              <a class="btn-download" href="${photo.url}" download="${photo.filename}">
-                ⬇️ Tải về
-              </a>
-              <button class="btn-delete" onclick="deletePhoto('${photo.filename}')" title="Xóa">
-                🗑️
-              </button>
-            </div>
+      el.innerHTML = `<div class="audio-grid">${audios.map(a => `
+        <div class="audio-card" id="acard-${a.filename}">
+          <div class="audio-icon-wrap">🎤</div>
+          <div class="audio-info">
+            <div class="audio-meta-text">${formatDate(a.uploadedAt)} — ${cleanIP(a.ip)}${a.size ? ' — ' + formatSize(a.size) : ''}</div>
+            <audio class="audio-player" controls preload="metadata">
+              <source src="${a.url}" type="audio/webm">
+            </audio>
           </div>
-        </div>`;
+          <div style="display:flex;flex-direction:column;gap:6px;flex-shrink:0">
+            <a class="btn-download" href="${a.url}" download="${a.filename}" style="padding:8px 10px;font-size:0.8rem">⬇️</a>
+            <button class="btn-delete" onclick="deleteAudio('${a.filename}')" style="padding:8px 10px">🗑️</button>
+          </div>
+        </div>`).join('')}`;
     }
 
-    async function deletePhoto(filename) {
-      if (!confirm('Xóa ảnh này?')) return;
+    async function deleteAudio(filename) {
+      if (!confirm('Xóa âm thanh này?')) return;
+      await fetch(`/api/audios/${filename}`, { method: 'DELETE' });
+      audios = audios.filter(a => a.filename !== filename);
+      const card = document.getElementById(`acard-${filename}`);
+      if (card) { card.style.transition='all 0.3s'; card.style.opacity='0'; setTimeout(()=>card.remove(),300); }
+    }
+
+    // ==================== SESSIONS ====================
+    let allSessions = [];
+
+    async function loadSessions() {
+      document.getElementById('last-updated-sessions').textContent = 'Đang cập nhật...';
       try {
-        await fetch(`/api/photos/${filename}`, { method: 'DELETE' });
-        photos = photos.filter(p => p.filename !== filename);
-        const card = document.getElementById(`card-${filename}`);
-        if (card) {
-          card.style.animation = 'none';
-          card.style.transform = 'scale(0.85)';
-          card.style.opacity = '0';
-          card.style.transition = 'all 0.3s ease';
-          setTimeout(() => { card.remove(); updateStats(); }, 300);
-        }
+        const res = await fetch('/api/sessions');
+        allSessions = await res.json();
+        filterSessions();
+        document.getElementById('stat-sessions').textContent = allSessions.length;
+        document.getElementById('badge-sessions').textContent = allSessions.filter(s => s.locked).length;
+        document.getElementById('last-updated-sessions').textContent = `Cập nhật lúc ${new Date().toLocaleTimeString('vi-VN')} — ${allSessions.length} sessions`;
       } catch (e) {
-        alert('Lỗi khi xóa ảnh!');
+        document.getElementById('sessions-tbody').innerHTML = '<tr><td colspan="6" style="text-align:center;color:#f72585">❌ Lỗi kết nối</td></tr>';
       }
     }
 
+    function filterSessions() {
+      const q = (document.getElementById('session-search')?.value || '').toLowerCase();
+      const filter = document.getElementById('session-filter')?.value || 'all';
+      let list = allSessions.filter(s => {
+        const match = !q ||
+          (s.ip||'').toLowerCase().includes(q) ||
+          (s.address||'').toLowerCase().includes(q) ||
+          (s.sessionId||'').toLowerCase().includes(q);
+        const statusMatch = filter === 'all' || (filter === 'locked' && s.locked) || (filter === 'unlocked' && !s.locked);
+        return match && statusMatch;
+      });
+      renderSessions(list);
+    }
+
+    function renderSessions(list) {
+      const tbody = document.getElementById('sessions-tbody');
+      if (!list.length) {
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:40px;color:var(--muted)">Không có session nào</td></tr>';
+        return;
+      }
+      tbody.innerHTML = list.map(s => {
+        const ua = (s.userAgent || '').substring(0, 80);
+        const platform = s.platform || (s.screenW ? `${s.screenW}x${s.screenH}` : '');
+        return `<tr id="srow-${s.sessionId}">
+          <td style="white-space:nowrap">${formatDate(s.visitedAt)}</td>
+          <td style="font-family:monospace;font-size:0.8rem">${cleanIP(s.ip)}</td>
+          <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${s.address||''}">${s.address || '—'}</td>
+          <td style="font-size:0.78rem;color:var(--muted)">${platform || '—'}</td>
+          <td>${s.locked ? '<span class="badge-locked">🔒 Bị lock</span>' : '<span class="badge-unlocked">🔓 Tự do</span>'}</td>
+          <td><div class="session-actions">
+            ${s.locked
+              ? `<button class="tbl-btn success" onclick="unlockSession('${s.sessionId}')">🔓 Unlock</button>`
+              : `<button class="tbl-btn" onclick="lockSession('${s.sessionId}')">🔒 Lock</button>`}
+            <button class="tbl-btn danger" onclick="deleteSession('${s.sessionId}')">🗑️</button>
+          </div></td>
+        </tr>`;
+      }).join('');
+    }
+
+    async function unlockSession(id) {
+      await fetch(`/api/session/unlock/${id}`, { method: 'POST' });
+      await loadSessions();
+    }
+    async function lockSession(id) {
+      await fetch(`/api/session/lock/${id}`, { method: 'POST' });
+      await loadSessions();
+    }
+    async function deleteSession(id) {
+      if (!confirm('Xóa session này?')) return;
+      await fetch(`/api/session/${id}`, { method: 'DELETE' });
+      allSessions = allSessions.filter(s => s.sessionId !== id);
+      filterSessions();
+    }
+    async function unlockAll() {
+      if (!confirm('Mở khóa tất cả sessions?')) return;
+      await fetch('/api/session/unlock-all', { method: 'POST' });
+      await loadSessions();
+      showToast('🔓', 'Đã mở khóa', 'Tất cả sessions đã được unlock', 'visitor');
+    }
+
+    // ==================== MAP ====================
+    let leafletMap = null;
+    let mapMarkers = [];
+
+    function initMap() {
+      if (mapInitialized) return;
+      mapInitialized = true;
+      leafletMap = L.map('leaflet-map').setView([16.0, 108.0], 5);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors'
+      }).addTo(leafletMap);
+    }
+
+    async function refreshMap() {
+      if (!leafletMap) return;
+      try {
+        const res = await fetch('/api/sessions');
+        const sessions = await res.json();
+        // Clear old markers
+        mapMarkers.forEach(m => leafletMap.removeLayer(m));
+        mapMarkers = [];
+
+        const withLocation = sessions.filter(s => s.location && s.location.latitude);
+        withLocation.forEach(s => {
+          const icon = L.divIcon({
+            className: '',
+            html: `<div style="background:${s.locked?'#f72585':'#00e5a0'};width:14px;height:14px;border-radius:50%;border:2px solid #fff;box-shadow:0 0 8px ${s.locked?'rgba(247,37,133,0.6)':'rgba(0,229,160,0.6)'}"></div>`,
+            iconSize: [14, 14], iconAnchor: [7, 7]
+          });
+          const marker = L.marker([s.location.latitude, s.location.longitude], { icon })
+            .addTo(leafletMap)
+            .bindPopup(`<div style="font-family:'Outfit',sans-serif;min-width:200px">
+              <strong>${s.locked ? '🔒 Bị lock' : '🔓 Tự do'}</strong><br>
+              <span style="font-size:0.85rem">IP: ${cleanIP(s.ip)}</span><br>
+              ${s.address ? `<span style="font-size:0.82rem">📍 ${s.address}</span><br>` : ''}
+              <span style="font-size:0.78rem;color:#888">${formatDate(s.visitedAt)}</span>
+            </div>`);
+          mapMarkers.push(marker);
+        });
+
+        // Stats
+        document.getElementById('map-stats').innerHTML = `
+          <div class="map-stat"><span>Tổng visitor</span><strong>${sessions.length}</strong></div>
+          <div class="map-stat"><span>Có vị trí</span><strong>${withLocation.length}</strong></div>
+          <div class="map-stat"><span>Đang lock</span><strong style="color:#f72585">${sessions.filter(s=>s.locked).length}</strong></div>
+        `;
+
+        if (withLocation.length > 0) {
+          const group = L.featureGroup(mapMarkers);
+          leafletMap.fitBounds(group.getBounds().pad(0.3));
+        }
+      } catch (e) {}
+    }
+
+    // ==================== CHARTS ====================
+    let mainChart = null, deviceChart = null;
+    let chartData = null;
+    let chartMode = '24h';
+
+    async function loadChart() {
+      try {
+        const res = await fetch('/api/stats/chart');
+        chartData = await res.json();
+        renderMainChart();
+        renderDeviceChart();
+      } catch (e) {}
+    }
+
+    function switchChartTab(mode) {
+      chartMode = mode;
+      document.getElementById('tab-24h').classList.toggle('active', mode === '24h');
+      document.getElementById('tab-7d').classList.toggle('active', mode === '7d');
+      renderMainChart();
+    }
+
+    function renderMainChart() {
+      if (!chartData) return;
+      const data = chartMode === '24h' ? chartData.last24 : chartData.last7;
+      const title = chartMode === '24h' ? 'Visitor theo giờ (24h qua)' : 'Visitor theo ngày (7 ngày)';
+      document.getElementById('chart-main-title').textContent = title;
+      const ctx = document.getElementById('chart-main').getContext('2d');
+      if (mainChart) mainChart.destroy();
+      mainChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: data.map(d => d.label),
+          datasets: [{
+            label: 'Visitors',
+            data: data.map(d => d.count),
+            backgroundColor: 'rgba(108,99,255,0.5)',
+            borderColor: '#6c63ff',
+            borderWidth: 1,
+            borderRadius: 6
+          }]
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { ticks: { color: 'rgba(238,240,248,0.45)', font: { family: 'Outfit' } }, grid: { color: 'rgba(255,255,255,0.04)' } },
+            y: { ticks: { color: 'rgba(238,240,248,0.45)', font: { family: 'Outfit' }, stepSize: 1 }, grid: { color: 'rgba(255,255,255,0.06)' }, beginAtZero: true }
+          }
+        }
+      });
+    }
+
+    function renderDeviceChart() {
+      if (!chartData) return;
+      const d = chartData.devices;
+      const ctx = document.getElementById('chart-device').getContext('2d');
+      if (deviceChart) deviceChart.destroy();
+      deviceChart = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          labels: ['📱 Mobile', '💻 Desktop', '📟 Tablet'],
+          datasets: [{
+            data: [d.mobile, d.desktop, d.tablet],
+            backgroundColor: ['rgba(247,37,133,0.7)', 'rgba(108,99,255,0.7)', 'rgba(0,229,160,0.7)'],
+            borderColor: ['#f72585', '#6c63ff', '#00e5a0'],
+            borderWidth: 2
+          }]
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          plugins: {
+            legend: { position: 'bottom', labels: { color: 'rgba(238,240,248,0.6)', font: { family: 'Outfit' }, padding: 16 } }
+          }
+        }
+      });
+    }
+
+    // ==================== EXPORT CSV ====================
+    function exportCSV() {
+      window.location.href = '/api/export/csv';
+    }
+
+    // ==================== SETTINGS ====================
+    async function loadSettings() {
+      try {
+        const res = await fetch('/api/config');
+        const cfg = await res.json();
+        document.getElementById('expire-hours').value = cfg.expireHours || 24;
+        document.getElementById('toggle-sound').checked = cfg.alertSound !== false;
+        document.getElementById('tg-token').value = cfg.telegramToken || '';
+        document.getElementById('tg-chat').value = cfg.telegramChatId || '';
+        document.getElementById('toggle-telegram').checked = cfg.telegramEnabled || false;
+        alertEnabled = cfg.alertSound !== false;
+        document.getElementById('expire-info').textContent = (cfg.expireHours || 24) + ' giờ';
+      } catch (e) {}
+    }
+
+    async function saveSecuritySettings() {
+      const pin = document.getElementById('new-pin').value.trim();
+      const expireHours = parseInt(document.getElementById('expire-hours').value) || 24;
+      const alertSound = document.getElementById('toggle-sound').checked;
+      const body = { expireHours, alertSound };
+      if (pin && /^\d{6}$/.test(pin)) {
+        body.pin = pin;
+        CORRECT_PIN = pin;
+        document.getElementById('new-pin').value = '';
+      } else if (pin) {
+        alert('PIN phải là 6 chữ số!'); return;
+      }
+      await fetch('/api/config', { method: 'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) });
+      alertEnabled = alertSound;
+      document.getElementById('expire-info').textContent = expireHours + ' giờ';
+      showToast('✅', 'Đã lưu', 'Cài đặt bảo mật đã cập nhật');
+    }
+
+    async function saveTelegramSettings() {
+      const token = document.getElementById('tg-token').value.trim();
+      const chatId = document.getElementById('tg-chat').value.trim();
+      const enabled = document.getElementById('toggle-telegram').checked;
+      await fetch('/api/config', { method: 'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ telegramToken: token, telegramChatId: chatId, telegramEnabled: enabled }) });
+      showToast('✅', 'Đã lưu', 'Cài đặt Telegram đã cập nhật');
+    }
+
+    async function testTelegram() {
+      const result = document.getElementById('tg-result');
+      result.textContent = '⏳ Đang gửi...';
+      await saveTelegramSettings();
+      try {
+        const res = await fetch('/api/telegram/test', { method: 'POST' });
+        const data = await res.json();
+        result.textContent = data.success ? '✅ Gửi thành công! Kiểm tra Telegram của bạn.' : `❌ Lỗi: ${data.error}`;
+        result.style.color = data.success ? '#00e5a0' : '#f72585';
+      } catch (e) {
+        result.textContent = '❌ Lỗi kết nối server';
+        result.style.color = '#f72585';
+      }
+    }
+
+    // ==================== LIGHTBOX ====================
     function openLightbox(url) {
       document.getElementById('lb-img').src = url;
       document.getElementById('lightbox').classList.add('open');
@@ -1097,13 +1328,36 @@
     function closeLightbox() {
       document.getElementById('lightbox').classList.remove('open');
     }
-    document.addEventListener('keydown', e => { if (e.key === 'Escape') closeLightbox(); });
+    document.addEventListener('keydown', e => {
+      if (document.getElementById('pin-overlay').classList.contains('hidden')) {
+        if (e.key === 'Escape') closeLightbox();
+      } else {
+        if (e.key >= '0' && e.key <= '9') pinPress(e.key);
+        if (e.key === 'Backspace') pinDel();
+      }
+    });
 
-    // Auto refresh mỗi 15 giây
-    loadPhotos();
-    loadVideos();
-    setInterval(() => { loadPhotos(); loadVideos(); }, 15000);
+    // ==================== INIT ====================
+    function initAdmin() {
+      connectWS();
+      loadPhotos();
+      loadVideos();
+      loadAudios();
+      loadSettings();
+      // Fetch general stats
+      fetch('/api/stats').then(r => r.json()).then(d => {
+        document.getElementById('stat-sessions').textContent = d.activeSessions || 0;
+      }).catch(() => {});
+
+      // Auto-refresh every 20s
+      setInterval(() => {
+        if (currentTab === 'photos')   loadPhotos();
+        if (currentTab === 'videos')   loadVideos();
+        if (currentTab === 'audios')   loadAudios();
+        if (currentTab === 'sessions') loadSessions();
+        if (currentTab === 'map')      refreshMap();
+      }, 20000);
+    }
   </script>
 </body>
-
 </html>

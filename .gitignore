@@ -4,6 +4,9 @@ node_modules/
 # Uploads (ảnh & video người dùng)
 uploads/
 
+# Database & config (chứa token Telegram, PIN)
+data/
+
 # Logs
 *.log
 npm-debug.log*
