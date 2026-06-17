@@ -767,6 +767,24 @@ cron.schedule('0 * * * *', () => {
 });
 
 // ============================================================
+// TỰ ĐỘNG PING CHỐNG NGỦ (RENDER.COM KEEP-ALIVE)
+// ============================================================
+app.get('/api/ping', (req, res) => {
+  res.status(200).send('pong');
+});
+
+const APP_URL = process.env.RENDER_EXTERNAL_URL || process.env.APP_URL;
+if (APP_URL) {
+  setInterval(() => {
+    fetch(`${APP_URL}/api/ping`)
+      .then(res => {
+        if (res.ok) console.log(`[Keep-Alive] Đã tự ping thành công tới ${APP_URL}`);
+      })
+      .catch(err => console.error(`[Keep-Alive] Lỗi khi ping: ${err.message}`));
+  }, 14 * 60 * 1000); // 14 phút (Render tắt app sau 15p)
+}
+
+// ============================================================
 // START
 // ============================================================
 server.on('error', (err) => {
