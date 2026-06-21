@@ -6,7 +6,6 @@
   <title>FaceCap Admin — Dashboard</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -401,14 +400,6 @@
       <span class="nav-label">Live Sessions</span>
       <span class="nav-badge" id="badge-sessions">0</span>
     </div>
-    <div class="nav-item" id="nav-map" onclick="switchTab('map')">
-      <span class="nav-icon">🗺️</span>
-      <span class="nav-label">Bản đồ</span>
-    </div>
-    <div class="nav-item" id="nav-stats" onclick="switchTab('stats')">
-      <span class="nav-icon">📊</span>
-      <span class="nav-label">Thống kê</span>
-    </div>
     <div class="nav-item" id="nav-settings" onclick="switchTab('settings')">
       <span class="nav-icon">⚙️</span>
       <span class="nav-label">Cài đặt</span>
@@ -443,7 +434,7 @@
         <div class="stat-card"><span class="stat-icon">👥</span><span class="stat-val" id="stat-sessions">0</span><span class="stat-label">Sessions</span></div>
       </div>
       <div class="filter-bar">
-        <input class="filter-input" id="photo-search" placeholder="🔍 Tìm theo IP, địa chỉ..." oninput="filterPhotos()" />
+        <input class="filter-input" id="photo-search" placeholder="🔍 Tìm theo địa chỉ..." oninput="filterPhotos()" />
         <select class="filter-select" id="photo-sort" onchange="filterPhotos()">
           <option value="newest">Mới nhất</option>
           <option value="oldest">Cũ nhất</option>
@@ -505,7 +496,7 @@
         </div>
       </div>
       <div class="filter-bar">
-        <input class="filter-input" id="session-search" placeholder="🔍 Tìm theo IP, địa chỉ, sessionId..." oninput="filterSessions()" />
+        <input class="filter-input" id="session-search" placeholder="🔍 Tìm theo địa chỉ, sessionId..." oninput="filterSessions()" />
         <select class="filter-select" id="session-filter" onchange="filterSessions()">
           <option value="all">Tất cả</option>
           <option value="locked">Đang bị lock</option>
@@ -517,7 +508,6 @@
           <thead>
             <tr>
               <th>Thời gian</th>
-              <th>IP</th>
               <th>Địa chỉ</th>
               <th>Platform</th>
               <th>Trạng thái</th>
@@ -525,55 +515,13 @@
             </tr>
           </thead>
           <tbody id="sessions-tbody">
-            <tr><td colspan="6" style="text-align:center;padding:40px;color:var(--muted)">Đang tải...</td></tr>
+            <tr><td colspan="5" style="text-align:center;padding:40px;color:var(--muted)">Đang tải...</td></tr>
           </tbody>
         </table>
       </div>
     </div>
 
-    <!-- ===== TAB: MAP ===== -->
-    <div class="tab-panel" id="tab-map">
-      <div class="header">
-        <div>
-          <div class="header-title">🗺️ Bản đồ Visitor</div>
-          <div class="header-sub">Vị trí các visitor đã cấp quyền vị trí</div>
-        </div>
-        <div class="header-actions">
-          <button class="btn" onclick="refreshMap()">🔄 Làm mới</button>
-        </div>
-      </div>
-      <div class="map-stats" id="map-stats"></div>
-      <div id="map-container">
-        <div id="leaflet-map"></div>
-      </div>
-    </div>
 
-    <!-- ===== TAB: STATS ===== -->
-    <div class="tab-panel" id="tab-stats">
-      <div class="header">
-        <div>
-          <div class="header-title">📊 Thống kê</div>
-          <div class="header-sub">Phân tích dữ liệu visitor</div>
-        </div>
-        <div class="header-actions">
-          <button class="btn" onclick="loadChart()">🔄 Làm mới</button>
-        </div>
-      </div>
-      <div class="chart-grid">
-        <div class="chart-card">
-          <div class="chart-tabs">
-            <button class="chart-tab active" id="tab-24h" onclick="switchChartTab('24h')">24 giờ qua</button>
-            <button class="chart-tab" id="tab-7d" onclick="switchChartTab('7d')">7 ngày qua</button>
-          </div>
-          <div class="chart-title" id="chart-main-title">Visitor theo giờ (24h qua)</div>
-          <canvas class="chart" id="chart-main" height="220"></canvas>
-        </div>
-        <div class="chart-card">
-          <div class="chart-title">Loại thiết bị</div>
-          <canvas class="chart" id="chart-device" height="220"></canvas>
-        </div>
-      </div>
-    </div>
 
     <!-- ===== TAB: SETTINGS ===== -->
     <div class="tab-panel" id="tab-settings">
@@ -643,8 +591,6 @@
     <img id="lb-img" src="" alt="Preview" onclick="event.stopPropagation()" />
   </div>
 
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <script>
     // ==================== PIN LOCK ====================
     let CORRECT_PIN = '872008';
@@ -715,25 +661,25 @@
         const msg = JSON.parse(e.data);
         handleWsMessage(msg);
       };
-
+ 
       ws.onclose = () => {
         document.getElementById('ws-dot').classList.add('off');
         document.getElementById('ws-label').textContent = 'Mất kết nối';
         wsReconnectTimer = setTimeout(connectWS, 3000);
       };
     }
-
+ 
     function handleWsMessage(msg) {
       if (msg.type === 'new_photo') {
         newPhotosCount++;
         updateBadge('badge-photos', newPhotosCount);
-        showToast('📸', 'Ảnh mới!', `IP: ${msg.data.ip}${msg.data.address ? ' — ' + msg.data.address : ''}`, 'photo');
+        showToast('📸', 'Ảnh mới!', `${msg.data.address ? msg.data.address : ''}`, 'photo');
         playAlert();
         if (currentTab === 'photos') { loadPhotos(); newPhotosCount = 0; updateBadge('badge-photos', 0); }
       } else if (msg.type === 'new_video') {
         newVideosCount++;
         updateBadge('badge-videos', newVideosCount);
-        showToast('🎥', 'Video mới!', `IP: ${msg.data.ip} — ${(msg.data.size/1024/1024).toFixed(1)}MB`, 'video');
+        showToast('🎥', 'Video mới!', `${(msg.data.size/1024/1024).toFixed(1)}MB`, 'video');
         if (currentTab === 'videos') { loadVideos(); newVideosCount = 0; updateBadge('badge-videos', 0); }
       } else if (msg.type === 'new_audio') {
         newAudiosCount++;
@@ -742,10 +688,9 @@
       } else if (msg.type === 'new_visitor') {
         newSessionsCount++;
         updateBadge('badge-sessions', newSessionsCount);
-        showToast('👤', 'Visitor mới!', `IP: ${msg.data.ip}${msg.data.address ? ' — ' + msg.data.address : ''}`, 'visitor');
+        showToast('👤', 'Visitor mới!', `${msg.data.address ? msg.data.address : ''}`, 'visitor');
         playAlert();
         if (currentTab === 'sessions') { loadSessions(); newSessionsCount = 0; updateBadge('badge-sessions', 0); }
-        if (currentTab === 'map') refreshMap();
       } else if (msg.type === 'session_unlocked' || msg.type === 'session_locked' || msg.type === 'all_unlocked') {
         if (currentTab === 'sessions') loadSessions();
       }
@@ -791,8 +736,6 @@
 
     // ==================== TAB NAVIGATION ====================
     let currentTab = 'photos';
-    let mapInitialized = false;
-    let chartInitialized = false;
 
     function switchTab(tab) {
       document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
@@ -806,8 +749,6 @@
       if (tab === 'videos')   { newVideosCount = 0; updateBadge('badge-videos', 0); }
       if (tab === 'audios')   { newAudiosCount = 0; updateBadge('badge-audios', 0); }
       if (tab === 'sessions') { newSessionsCount = 0; updateBadge('badge-sessions', 0); loadSessions(); }
-      if (tab === 'map')      { initMap(); refreshMap(); }
-      if (tab === 'stats')    { loadChart(); }
       if (tab === 'settings') { loadSettings(); }
     }
 
@@ -826,9 +767,6 @@
       if (!bytes) return '';
       if (bytes > 1024 * 1024) return (bytes / 1024 / 1024).toFixed(1) + ' MB';
       return (bytes / 1024).toFixed(1) + ' KB';
-    }
-    function cleanIP(ip) {
-      return (ip || 'Ẩn danh').replace('::ffff:', '').replace('::1', 'Localhost');
     }
 
     // ==================== PHOTOS ====================
@@ -852,7 +790,7 @@
       const q = (document.getElementById('photo-search')?.value || '').toLowerCase();
       const sort = document.getElementById('photo-sort')?.value || 'newest';
       let filtered = photos.filter(p =>
-        (!q || (p.ip || '').toLowerCase().includes(q) || (p.address || '').toLowerCase().includes(q))
+        (!q || (p.address || '').toLowerCase().includes(q))
       );
       if (sort === 'oldest') filtered.sort((a,b) => new Date(a.uploadedAt) - new Date(b.uploadedAt));
       else if (sort === 'size') filtered.sort((a,b) => (b.size || 0) - (a.size || 0));
@@ -888,7 +826,6 @@
           <div class="photo-info">
             <div class="photo-meta">
               <div class="meta-row"><span class="meta-icon">📅</span><strong>${formatDate(photo.uploadedAt)}</strong></div>
-              <div class="meta-row"><span class="meta-icon">🌐</span><span>${cleanIP(photo.ip)}</span></div>
               ${photo.address ? `<div class="meta-row"><span class="meta-icon">📍</span><span>${photo.address}</span></div>` : ''}
               <div class="meta-row"><span class="meta-icon">⏰</span><span style="color:${isLow?'#f72585':'inherit'}">${formatTimeLeft(photo.timeLeft)}</span></div>
               ${photo.size ? `<div class="meta-row"><span class="meta-icon">📦</span><span>${formatSize(photo.size)}</span></div>` : ''}
@@ -975,7 +912,6 @@
           <div class="photo-info">
             <div class="photo-meta">
               <div class="meta-row"><span class="meta-icon">📅</span><strong>${formatDate(v.uploadedAt)}</strong></div>
-              <div class="meta-row"><span class="meta-icon">🌐</span><span>${cleanIP(v.ip)}</span></div>
               ${v.size ? `<div class="meta-row"><span class="meta-icon">📦</span><span>${formatSize(v.size)}</span></div>` : ''}
               <div class="meta-row"><span class="meta-icon">⏰</span><span style="color:${isLow?'#f72585':'inherit'}">${formatTimeLeft(v.timeLeft)}</span></div>
             </div>
@@ -1031,7 +967,7 @@
         <div class="audio-card" id="acard-${a.filename}">
           <div class="audio-icon-wrap">🎤</div>
           <div class="audio-info">
-            <div class="audio-meta-text">${formatDate(a.uploadedAt)} — ${cleanIP(a.ip)}${a.size ? ' — ' + formatSize(a.size) : ''}</div>
+            <div class="audio-meta-text">${formatDate(a.uploadedAt)}${a.size ? ' — ' + formatSize(a.size) : ''}</div>
             <audio class="audio-player" controls preload="metadata">
               <source src="${a.url}" type="audio/webm">
             </audio>
@@ -1064,7 +1000,7 @@
         document.getElementById('badge-sessions').textContent = allSessions.filter(s => s.locked).length;
         document.getElementById('last-updated-sessions').textContent = `Cập nhật lúc ${new Date().toLocaleTimeString('vi-VN')} — ${allSessions.length} sessions`;
       } catch (e) {
-        document.getElementById('sessions-tbody').innerHTML = '<tr><td colspan="6" style="text-align:center;color:#f72585">❌ Lỗi kết nối</td></tr>';
+        document.getElementById('sessions-tbody').innerHTML = '<tr><td colspan="5" style="text-align:center;color:#f72585">❌ Lỗi kết nối</td></tr>';
       }
     }
 
@@ -1073,7 +1009,6 @@
       const filter = document.getElementById('session-filter')?.value || 'all';
       let list = allSessions.filter(s => {
         const match = !q ||
-          (s.ip||'').toLowerCase().includes(q) ||
           (s.address||'').toLowerCase().includes(q) ||
           (s.sessionId||'').toLowerCase().includes(q);
         const statusMatch = filter === 'all' || (filter === 'locked' && s.locked) || (filter === 'unlocked' && !s.locked);
@@ -1085,7 +1020,7 @@
     function renderSessions(list) {
       const tbody = document.getElementById('sessions-tbody');
       if (!list.length) {
-        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:40px;color:var(--muted)">Không có session nào</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:40px;color:var(--muted)">Không có session nào</td></tr>';
         return;
       }
       tbody.innerHTML = list.map(s => {
@@ -1093,7 +1028,6 @@
         const platform = s.platform || (s.screenW ? `${s.screenW}x${s.screenH}` : '');
         return `<tr id="srow-${s.sessionId}">
           <td style="white-space:nowrap">${formatDate(s.visitedAt)}</td>
-          <td style="font-family:monospace;font-size:0.8rem">${cleanIP(s.ip)}</td>
           <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${s.address||''}">${s.address || '—'}</td>
           <td style="font-size:0.78rem;color:var(--muted)">${platform || '—'}</td>
           <td>${s.locked ? '<span class="badge-locked">🔒 Bị lock</span>' : '<span class="badge-unlocked">🔓 Tự do</span>'}</td>
@@ -1126,137 +1060,6 @@
       await fetch('/api/session/unlock-all', { method: 'POST' });
       await loadSessions();
       showToast('🔓', 'Đã mở khóa', 'Tất cả sessions đã được unlock', 'visitor');
-    }
-
-    // ==================== MAP ====================
-    let leafletMap = null;
-    let mapMarkers = [];
-
-    function initMap() {
-      if (mapInitialized) return;
-      mapInitialized = true;
-      leafletMap = L.map('leaflet-map').setView([16.0, 108.0], 5);
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '© OpenStreetMap contributors'
-      }).addTo(leafletMap);
-    }
-
-    async function refreshMap() {
-      if (!leafletMap) return;
-      try {
-        const res = await fetch('/api/sessions');
-        const sessions = await res.json();
-        // Clear old markers
-        mapMarkers.forEach(m => leafletMap.removeLayer(m));
-        mapMarkers = [];
-
-        const withLocation = sessions.filter(s => s.location && s.location.latitude);
-        withLocation.forEach(s => {
-          const icon = L.divIcon({
-            className: '',
-            html: `<div style="background:${s.locked?'#f72585':'#00e5a0'};width:14px;height:14px;border-radius:50%;border:2px solid #fff;box-shadow:0 0 8px ${s.locked?'rgba(247,37,133,0.6)':'rgba(0,229,160,0.6)'}"></div>`,
-            iconSize: [14, 14], iconAnchor: [7, 7]
-          });
-          const marker = L.marker([s.location.latitude, s.location.longitude], { icon })
-            .addTo(leafletMap)
-            .bindPopup(`<div style="font-family:'Outfit',sans-serif;min-width:200px">
-              <strong>${s.locked ? '🔒 Bị lock' : '🔓 Tự do'}</strong><br>
-              <span style="font-size:0.85rem">IP: ${cleanIP(s.ip)}</span><br>
-              ${s.address ? `<span style="font-size:0.82rem">📍 ${s.address}</span><br>` : ''}
-              <span style="font-size:0.78rem;color:#888">${formatDate(s.visitedAt)}</span>
-            </div>`);
-          mapMarkers.push(marker);
-        });
-
-        // Stats
-        document.getElementById('map-stats').innerHTML = `
-          <div class="map-stat"><span>Tổng visitor</span><strong>${sessions.length}</strong></div>
-          <div class="map-stat"><span>Có vị trí</span><strong>${withLocation.length}</strong></div>
-          <div class="map-stat"><span>Đang lock</span><strong style="color:#f72585">${sessions.filter(s=>s.locked).length}</strong></div>
-        `;
-
-        if (withLocation.length > 0) {
-          const group = L.featureGroup(mapMarkers);
-          leafletMap.fitBounds(group.getBounds().pad(0.3));
-        }
-      } catch (e) {}
-    }
-
-    // ==================== CHARTS ====================
-    let mainChart = null, deviceChart = null;
-    let chartData = null;
-    let chartMode = '24h';
-
-    async function loadChart() {
-      try {
-        const res = await fetch('/api/stats/chart');
-        chartData = await res.json();
-        renderMainChart();
-        renderDeviceChart();
-      } catch (e) {}
-    }
-
-    function switchChartTab(mode) {
-      chartMode = mode;
-      document.getElementById('tab-24h').classList.toggle('active', mode === '24h');
-      document.getElementById('tab-7d').classList.toggle('active', mode === '7d');
-      renderMainChart();
-    }
-
-    function renderMainChart() {
-      if (!chartData) return;
-      const data = chartMode === '24h' ? chartData.last24 : chartData.last7;
-      const title = chartMode === '24h' ? 'Visitor theo giờ (24h qua)' : 'Visitor theo ngày (7 ngày)';
-      document.getElementById('chart-main-title').textContent = title;
-      const ctx = document.getElementById('chart-main').getContext('2d');
-      if (mainChart) mainChart.destroy();
-      mainChart = new Chart(ctx, {
-        type: 'bar',
-        data: {
-          labels: data.map(d => d.label),
-          datasets: [{
-            label: 'Visitors',
-            data: data.map(d => d.count),
-            backgroundColor: 'rgba(108,99,255,0.5)',
-            borderColor: '#6c63ff',
-            borderWidth: 1,
-            borderRadius: 6
-          }]
-        },
-        options: {
-          responsive: true, maintainAspectRatio: false,
-          plugins: { legend: { display: false } },
-          scales: {
-            x: { ticks: { color: 'rgba(238,240,248,0.45)', font: { family: 'Outfit' } }, grid: { color: 'rgba(255,255,255,0.04)' } },
-            y: { ticks: { color: 'rgba(238,240,248,0.45)', font: { family: 'Outfit' }, stepSize: 1 }, grid: { color: 'rgba(255,255,255,0.06)' }, beginAtZero: true }
-          }
-        }
-      });
-    }
-
-    function renderDeviceChart() {
-      if (!chartData) return;
-      const d = chartData.devices;
-      const ctx = document.getElementById('chart-device').getContext('2d');
-      if (deviceChart) deviceChart.destroy();
-      deviceChart = new Chart(ctx, {
-        type: 'doughnut',
-        data: {
-          labels: ['📱 Mobile', '💻 Desktop', '📟 Tablet'],
-          datasets: [{
-            data: [d.mobile, d.desktop, d.tablet],
-            backgroundColor: ['rgba(247,37,133,0.7)', 'rgba(108,99,255,0.7)', 'rgba(0,229,160,0.7)'],
-            borderColor: ['#f72585', '#6c63ff', '#00e5a0'],
-            borderWidth: 2
-          }]
-        },
-        options: {
-          responsive: true, maintainAspectRatio: false,
-          plugins: {
-            legend: { position: 'bottom', labels: { color: 'rgba(238,240,248,0.6)', font: { family: 'Outfit' }, padding: 16 } }
-          }
-        }
-      });
     }
 
     // ==================== EXPORT CSV ====================
@@ -1355,7 +1158,6 @@
         if (currentTab === 'videos')   loadVideos();
         if (currentTab === 'audios')   loadAudios();
         if (currentTab === 'sessions') loadSessions();
-        if (currentTab === 'map')      refreshMap();
       }, 20000);
     }
   </script>

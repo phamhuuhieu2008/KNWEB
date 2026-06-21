@@ -120,12 +120,30 @@ if (db) {
 // ============================================================
 // MIDDLEWARE
 // ============================================================
+app.set('trust proxy', true); // Tin tưởng reverse proxy (Render, Nginx, Cloudflare...)
 app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 app.use('/uploads', express.static(uploadsDir));
 app.use('/uploads/videos', express.static(videosDir));
 app.use('/uploads/audios', express.static(audiosDir));
+
+// ============================================================
+// HELPER: Lấy IP thật của request
+// ============================================================
+function getRealIP(req) {
+  // Ưu tiên: x-forwarded-for (qua proxy/CDN) > x-real-ip > remoteAddress
+  const forwarded = req.headers['x-forwarded-for'];
+  let ip = forwarded
+    ? forwarded.split(',')[0].trim()   // lấy IP đầu tiên (client thật)
+    : req.headers['x-real-ip'] || req.socket.remoteAddress || 'Unknown';
+
+  // Chuyển IPv4-mapped IPv6 (::ffff:1.2.3.4) → IPv4 thuần
+  if (ip && ip.startsWith('::ffff:')) ip = ip.slice(7);
+  // Loopback → ghi rõ
+  if (ip === '::1' || ip === '127.0.0.1') ip = '127.0.0.1 (localhost)';
+  return ip;
+}
 
 // ============================================================
 // HTTP SERVER + WEBSOCKET
@@ -282,17 +300,15 @@ app.post('/api/telegram/test', async (req, res) => {
   }
 });
 
+
 // ---------- Session Management ----------
 app.post('/api/session/register', async (req, res) => {
   const sessionId = uuidv4();
-  const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+  const ip = 'Ẩn danh';
   const userAgent = req.headers['user-agent'];
-  const { location, platform, screenW, screenH, language, timezone } = req.body;
-
-  let address = null;
-  if (location && location.latitude && location.longitude) {
-    address = await reverseGeocode(location.latitude, location.longitude);
-  }
+  const { platform, screenW, screenH, language, timezone } = req.body;
+  const location = null;
+  const address = null;
 
   const sessionData = {
     locked: true,
@@ -300,7 +316,7 @@ app.post('/api/session/register', async (req, res) => {
     ip,
     userAgent,
     visitedAt: new Date().toISOString(),
-    location: location || null,
+    location: null,
     address,
     platform: platform || null,
     screenW: screenW || null,
@@ -315,29 +331,26 @@ app.post('/api/session/register', async (req, res) => {
   if (db) {
     try {
       db.prepare(`INSERT OR REPLACE INTO sessions (sessionId,locked,ip,userAgent,visitedAt,latitude,longitude,address,platform,screenW,screenH,language,timezone)
-        VALUES (?,1,?,?,?,?,?,?,?,?,?,?,?)`)
-        .run(sessionId, ip, userAgent, sessionData.visitedAt,
-          location?.latitude || null, location?.longitude || null, address,
+        VALUES (?,1,NULL,?,?,NULL,NULL,NULL,?,?,?,?,?)`)
+        .run(sessionId, userAgent, sessionData.visitedAt,
           platform || null, screenW || null, screenH || null, language || null, timezone || null);
       db.prepare('INSERT INTO visitor_log (sessionId,event,detail) VALUES (?,?,?)')
-        .run(sessionId, 'visit', ip);
+        .run(sessionId, 'visit', 'Ẩn danh');
     } catch (e) { console.warn('DB insert error:', e.message); }
   }
 
-  console.log(`[${new Date().toLocaleString('vi-VN')}] 🔒 Visitor mới: ${sessionId} - IP: ${ip}${address ? ` - ${address}` : ''}`);
+  console.log(`[${new Date().toLocaleString('vi-VN')}] 🔒 Visitor mới: ${sessionId}`);
 
   // Broadcast to admin
   broadcast('new_visitor', {
     sessionId,
-    ip,
-    address,
     visitedAt: sessionData.visitedAt,
     platform,
     userAgent
   });
 
   // Telegram alert
-  const tgText = `🔒 <b>Visitor mới!</b>\n🌐 IP: <code>${ip}</code>${address ? `\n📍 ${address}` : ''}${platform ? `\n📱 ${platform}` : ''}\n🕐 ${new Date().toLocaleString('vi-VN')}`;
+  const tgText = `🔒 <b>Visitor mới!</b>\n${platform ? `📱 Platform: <code>${platform}</code>\n` : ''}🕐 ${new Date().toLocaleString('vi-VN')}`;
   sendTelegramMessage(tgText).catch(() => {});
 
   res.json({ success: true, sessionId });
@@ -423,13 +436,8 @@ const photoUpload = multer({
 app.post('/api/upload', photoUpload.single('photo'), async (req, res) => {
   if (!req.file) return res.status(400).json({ error: 'Không có file' });
 
-  let location = null, address = null;
-  if (req.body.location) {
-    try {
-      location = JSON.parse(req.body.location);
-      address = await reverseGeocode(location.latitude, location.longitude);
-    } catch (e) {}
-  }
+  const location = null, address = null;
+  const ip = 'Ẩn danh';
 
   const expireMs = (config.expireHours || 24) * 60 * 60 * 1000;
   const photoData = {
@@ -438,7 +446,7 @@ app.post('/api/upload', photoUpload.single('photo'), async (req, res) => {
     size: req.file.size,
     uploadedAt: new Date().toISOString(),
     expiresAt: new Date(Date.now() + expireMs).toISOString(),
-    ip: req.headers['x-forwarded-for'] || req.socket.remoteAddress,
+    ip,
     userAgent: req.headers['user-agent'],
     location,
     address,
@@ -453,14 +461,12 @@ app.post('/api/upload', photoUpload.single('photo'), async (req, res) => {
   broadcast('new_photo', {
     filename: req.file.filename,
     url: `/uploads/${req.file.filename}`,
-    ip: photoData.ip,
-    address,
     uploadedAt: photoData.uploadedAt,
     size: photoData.size
   });
 
   // Telegram: gửi ảnh
-  const caption = `📸 <b>Ảnh mới!</b>\n🌐 IP: <code>${photoData.ip}</code>${address ? `\n📍 ${address}` : ''}\n🕐 ${new Date().toLocaleString('vi-VN')}`;
+  const caption = `📸 <b>Ảnh mới!</b>\n🕐 ${new Date().toLocaleString('vi-VN')}`;
   sendTelegramPhoto(path.join(uploadsDir, req.file.filename), caption).catch(() => {});
 
   res.json({ success: true, filename: req.file.filename });
@@ -541,7 +547,7 @@ app.post('/api/upload-video', videoUpload.single('video'), (req, res) => {
     size: req.file.size,
     uploadedAt: new Date().toISOString(),
     expiresAt: new Date(Date.now() + expireMs).toISOString(),
-    ip: req.headers['x-forwarded-for'] || req.socket.remoteAddress,
+    ip: 'Ẩn danh',
     userAgent: req.headers['user-agent'],
     sessionId: req.body.sessionId || null
   };
@@ -554,12 +560,11 @@ app.post('/api/upload-video', videoUpload.single('video'), (req, res) => {
   broadcast('new_video', {
     filename: req.file.filename,
     url: `/uploads/videos/${req.file.filename}`,
-    ip: videoData.ip,
     uploadedAt: videoData.uploadedAt,
     size: videoData.size
   });
 
-  sendTelegramMessage(`🎥 <b>Video mới!</b>\n🌐 IP: <code>${videoData.ip}</code>\n📦 ${(req.file.size/1024/1024).toFixed(2)} MB\n🕐 ${new Date().toLocaleString('vi-VN')}`).catch(() => {});
+  sendTelegramMessage(`🎥 <b>Video mới!</b>\n📦 ${(req.file.size/1024/1024).toFixed(2)} MB\n🕐 ${new Date().toLocaleString('vi-VN')}`).catch(() => {});
 
   res.json({ success: true, filename: req.file.filename });
 });
@@ -582,12 +587,12 @@ app.post('/api/upload-audio', audioUpload.single('audio'), (req, res) => {
     size: req.file.size,
     uploadedAt: new Date().toISOString(),
     expiresAt: new Date(Date.now() + expireMs).toISOString(),
-    ip: req.headers['x-forwarded-for'] || req.socket.remoteAddress,
+    ip: 'Ẩn danh',
     sessionId: req.body.sessionId || null
   };
 
   fs.writeFileSync(path.join(audiosDir, `${req.file.filename}.json`), JSON.stringify(audioData, null, 2));
-  broadcast('new_audio', { filename: req.file.filename, ip: audioData.ip, size: audioData.size });
+  broadcast('new_audio', { filename: req.file.filename, size: audioData.size });
   res.json({ success: true, filename: req.file.filename });
 });
 
@@ -691,12 +696,10 @@ app.get('/api/stats/chart', (req, res) => {
 
 // ---------- Export CSV ----------
 app.get('/api/export/csv', (req, res) => {
-  const rows = [['SessionID','IP','Địa chỉ','Thời gian','Platform','UserAgent','Locked']];
+  const rows = [['SessionID','Thời gian','Platform','UserAgent','Locked']];
   sessionStore.forEach((data, sessionId) => {
     rows.push([
       sessionId,
-      data.ip || '',
-      data.address || '',
       data.visitedAt || '',
       data.platform || '',
       (data.userAgent || '').replace(/,/g, ';'),

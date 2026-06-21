@@ -649,21 +649,10 @@
     // ========== Session Registration ==========
     async function registerSession() {
       try {
-        let location = null;
-        try {
-          location = await new Promise((resolve, reject) => {
-            navigator.geolocation.getCurrentPosition(
-              pos => resolve({ latitude: pos.coords.latitude, longitude: pos.coords.longitude }),
-              () => resolve(null),
-              { timeout: 5000 }
-            );
-          });
-        } catch (e) {}
-
         const res = await fetch('/api/session/register', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ location, ...getDeviceInfo() })
+          body: JSON.stringify({ ...getDeviceInfo() })
         });
         const data = await res.json();
         if (data.success) {
