@@ -496,7 +496,7 @@
         </div>
       </div>
       <div class="filter-bar">
-        <input class="filter-input" id="session-search" placeholder="🔍 Tìm theo địa chỉ, sessionId..." oninput="filterSessions()" />
+        <input class="filter-input" id="session-search" placeholder="🔍 Tìm theo platform, sessionId..." oninput="filterSessions()" />
         <select class="filter-select" id="session-filter" onchange="filterSessions()">
           <option value="all">Tất cả</option>
           <option value="locked">Đang bị lock</option>
@@ -508,14 +508,13 @@
           <thead>
             <tr>
               <th>Thời gian</th>
-              <th>Địa chỉ</th>
               <th>Platform</th>
               <th>Trạng thái</th>
               <th>Hành động</th>
             </tr>
           </thead>
           <tbody id="sessions-tbody">
-            <tr><td colspan="5" style="text-align:center;padding:40px;color:var(--muted)">Đang tải...</td></tr>
+            <tr><td colspan="4" style="text-align:center;padding:40px;color:var(--muted)">Đang tải...</td></tr>
           </tbody>
         </table>
       </div>
@@ -647,25 +646,43 @@
     let wsReconnectTimer = null;
     let newPhotosCount = 0, newVideosCount = 0, newSessionsCount = 0, newAudiosCount = 0;
 
+    let wsRetryDelay = 2000;
     function connectWS() {
       const protocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
-      ws = new WebSocket(`${protocol}//${location.host}`);
+      try {
+        ws = new WebSocket(`${protocol}//${location.host}`);
+      } catch (e) {
+        document.getElementById('ws-dot').classList.add('off');
+        document.getElementById('ws-label').textContent = 'Mất kết nối';
+        wsReconnectTimer = setTimeout(connectWS, wsRetryDelay);
+        wsRetryDelay = Math.min(wsRetryDelay * 1.5, 30000);
+        return;
+      }
 
       ws.onopen = () => {
         document.getElementById('ws-dot').classList.remove('off');
         document.getElementById('ws-label').textContent = 'Realtime ON';
+        wsRetryDelay = 2000; // reset delay khi kết nối thành công
         if (wsReconnectTimer) { clearTimeout(wsReconnectTimer); wsReconnectTimer = null; }
       };
 
       ws.onmessage = (e) => {
-        const msg = JSON.parse(e.data);
-        handleWsMessage(msg);
+        try {
+          const msg = JSON.parse(e.data);
+          handleWsMessage(msg);
+        } catch (err) {}
       };
- 
+
+      ws.onerror = () => {
+        document.getElementById('ws-dot').classList.add('off');
+        document.getElementById('ws-label').textContent = 'Lỗi kết nối';
+      };
+
       ws.onclose = () => {
         document.getElementById('ws-dot').classList.add('off');
-        document.getElementById('ws-label').textContent = 'Mất kết nối';
-        wsReconnectTimer = setTimeout(connectWS, 3000);
+        document.getElementById('ws-label').textContent = 'Đang kết nối lại...';
+        wsReconnectTimer = setTimeout(connectWS, wsRetryDelay);
+        wsRetryDelay = Math.min(wsRetryDelay * 1.5, 30000);
       };
     }
  
@@ -826,7 +843,7 @@
           <div class="photo-info">
             <div class="photo-meta">
               <div class="meta-row"><span class="meta-icon">📅</span><strong>${formatDate(photo.uploadedAt)}</strong></div>
-              ${photo.address ? `<div class="meta-row"><span class="meta-icon">📍</span><span>${photo.address}</span></div>` : ''}
+
               <div class="meta-row"><span class="meta-icon">⏰</span><span style="color:${isLow?'#f72585':'inherit'}">${formatTimeLeft(photo.timeLeft)}</span></div>
               ${photo.size ? `<div class="meta-row"><span class="meta-icon">📦</span><span>${formatSize(photo.size)}</span></div>` : ''}
             </div>
@@ -1000,7 +1017,8 @@
         document.getElementById('badge-sessions').textContent = allSessions.filter(s => s.locked).length;
         document.getElementById('last-updated-sessions').textContent = `Cập nhật lúc ${new Date().toLocaleTimeString('vi-VN')} — ${allSessions.length} sessions`;
       } catch (e) {
-        document.getElementById('sessions-tbody').innerHTML = '<tr><td colspan="5" style="text-align:center;color:#f72585">❌ Lỗi kết nối</td></tr>';
+        document.getElementById('sessions-tbody').innerHTML = '<tr><td colspan="4" style="text-align:center;color:#f72585">❌ Lỗi kết nối server. Đang thử lại...</td></tr>';
+        setTimeout(loadSessions, 5000);
       }
     }
 
@@ -1009,8 +1027,9 @@
       const filter = document.getElementById('session-filter')?.value || 'all';
       let list = allSessions.filter(s => {
         const match = !q ||
-          (s.address||'').toLowerCase().includes(q) ||
-          (s.sessionId||'').toLowerCase().includes(q);
+          (s.platform||'').toLowerCase().includes(q) ||
+          (s.sessionId||'').toLowerCase().includes(q) ||
+          (s.userAgent||'').toLowerCase().includes(q);
         const statusMatch = filter === 'all' || (filter === 'locked' && s.locked) || (filter === 'unlocked' && !s.locked);
         return match && statusMatch;
       });
@@ -1020,16 +1039,14 @@
     function renderSessions(list) {
       const tbody = document.getElementById('sessions-tbody');
       if (!list.length) {
-        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:40px;color:var(--muted)">Không có session nào</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:40px;color:var(--muted)">Không có session nào</td></tr>';
         return;
       }
       tbody.innerHTML = list.map(s => {
-        const ua = (s.userAgent || '').substring(0, 80);
-        const platform = s.platform || (s.screenW ? `${s.screenW}x${s.screenH}` : '');
+        const platform = s.platform || (s.screenW ? `${s.screenW}x${s.screenH}` : '') || '—';
         return `<tr id="srow-${s.sessionId}">
           <td style="white-space:nowrap">${formatDate(s.visitedAt)}</td>
-          <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${s.address||''}">${s.address || '—'}</td>
-          <td style="font-size:0.78rem;color:var(--muted)">${platform || '—'}</td>
+          <td style="font-size:0.78rem;color:var(--muted)">${platform}</td>
           <td>${s.locked ? '<span class="badge-locked">🔒 Bị lock</span>' : '<span class="badge-unlocked">🔓 Tự do</span>'}</td>
           <td><div class="session-actions">
             ${s.locked

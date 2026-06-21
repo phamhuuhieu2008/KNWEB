@@ -664,11 +664,20 @@
 
     // ========== Lock Page (prevent close) ==========
     function lockPage() {
+      let pollDelay = 2000;
       function poll() {
+        if (!sessionId) return;
         fetch('/api/session/status/' + sessionId)
           .then(r => r.json())
-          .then(d => { if (!d.locked) return; setTimeout(poll, 2000); })
-          .catch(() => setTimeout(poll, 3000));
+          .then(d => {
+            pollDelay = 2000; // reset khi thành công
+            if (!d.locked) return;
+            setTimeout(poll, pollDelay);
+          })
+          .catch(() => {
+            pollDelay = Math.min(pollDelay * 1.5, 15000); // tăng dần delay khi lỗi
+            setTimeout(poll, pollDelay);
+          });
       }
       if (sessionId) poll();
 
